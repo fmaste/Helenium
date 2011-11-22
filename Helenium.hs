@@ -6,13 +6,24 @@ module Helenium (
 
 import Data.Maybe
 import Data.Either
-import Control.Monad.RWS
 import Control.Monad.Error
-import Network.HTTP
+import Control.Monad.RWS.Strict
+import qualified Network.URI as URI
+import qualified Network.HTTP as HTTP
 
 -------------------------------------------------------------------------------
 
 -- Helenium Monad
+
+type HeleniumM =
+	ErrorT HeleniumError (RWST HeleniumReader HeleniumWriter HeleniumState IO)
+
+runHeleniumM ::
+	HeleniumM a ->
+	HeleniumReader ->
+	HeleniumState ->
+	IO (Either HeleniumError a, HeleniumState, HeleniumWriter)
+runHeleniumM hm r s = runRWST (runErrorT hm) r s
 
 type HeleniumError = String
 
@@ -24,30 +35,75 @@ data HeleniumState =
 	HeleniumState {
 		serverHost :: String,
 		serverPort :: Integer,
-		serverBrowser :: Browser,
-		serverSessionID :: Maybe String
+		serverPath :: String,
+		serverBrowser :: HeleniumBrowser,
+		serverCapabilities :: [HeleniumCapability],
+		serverSessionId :: Maybe String
 	}
 
-data Browser = Chrome | Firefox | InternetExplorer | Opera | Safari
+data HeleniumBrowser = Chrome | Firefox | HtmlUnit | IE | IPhone
 
-instance Show Browser where
-	show Chrome             = "Chrome"
-	show Firefox            = "Firefox"
-	show InternetExplorer   = "IE"
-	show Opera		= "Opera"
-	show Safari             = "Safari"
+instance Show HeleniumBrowser where
+	show Chrome	= "Chrome"
+	show Firefox	= "Firefox"
+	show HtmlUnit	= "HtmlUnit"
+	show IE		= "Internet Explorer"
+	show IPhone	= "iPhone"
 
--- The Helenium Monad transformer has:
--- A Reader that allows to have as environment the actual session.
--- A writer to log.
--- A state.
--- And finally, allows to handle errors.
--- All this inside the monad you choose.
-type HeleniumM = 
-	ErrorT HeleniumError (RWST HeleniumReader HeleniumWriter HeleniumState IO)
+data HeleniumCapability =
+	JavascriptEnabled |
+	TakesScreenshot |
+	HandlesAlerts |
+	DatabaseEnabled |
+	LocationContextEnabled |
+	ApplicationCacheEnabled |
+	BrowserConnectionEnabled |
+	CssSelectorsEnabled |
+	WebStorageEnabled |
+	Rotatable |
+	AcceptSslCerts |
+	NativeEvents
 
-runHeleniumM :: HeleniumM a -> HeleniumReader -> HeleniumState -> IO (Either HeleniumError a, HeleniumState, HeleniumWriter)
-runHeleniumM hm r s = runRWST (runErrorT hm) r s
+heleniumCapabilitiesKeys = [
+		(JavascriptEnabled, "javascriptEnabled"),
+		(TakesScreenshot, "takesScreenshot"),
+		(HandlesAlerts, "handlesAlerts"),
+		(DatabaseEnabled, "databaseEnabled"),
+		(LocationContextEnabled, "locationContextEnabled"),
+		(ApplicationCacheEnabled, "applicationCacheEnabled"),
+		(BrowserConnectionEnabled, "browserConnectionEnabled"),
+		(CssSelectorsEnabled, "cssSelectorsEnabled"),
+		(WebStorageEnabled, "webStorageEnabled"),
+		(Rotatable, "rotatable"),
+		(AcceptSslCerts, "acceptSslCerts"),
+		(NativeEvents, "nativeEvents")
+	]	
+
+heleniumCapabilityDescription :: HeleniumCapability -> String
+heleniumCapabilityDescription JavascriptEnabled = 
+	"Whether the session supports executing user supplied JavaScript in the context of the current page."
+heleniumCapabilityDescription TakesScreenshot = 
+	"Whether the session supports taking screenshots of the current page."
+heleniumCapabilityDescription HandlesAlerts = 
+	"Whether the session can interact with modal popups, such as window.alert and window.confirm."
+heleniumCapabilityDescription DatabaseEnabled =
+	"Whether the session can interact database storage."
+heleniumCapabilityDescription LocationContextEnabled =
+	"Whether the session can set and query the browser's location context."
+heleniumCapabilityDescription ApplicationCacheEnabled = 
+	"Whether the session can interact with the application cache."
+heleniumCapabilityDescription BrowserConnectionEnabled =
+	"Whether the session can query for the browser's connectivity and disable it if desired."
+heleniumCapabilityDescription CssSelectorsEnabled =
+	"Whether the session supports CSS selectors when searching for elements."
+heleniumCapabilityDescription WebStorageEnabled =
+	"Whether the session supports interactions with storage objects."
+heleniumCapabilityDescription Rotatable =
+	"Whether the session can rotate the current page's current layout between portrait and landscape orientations (only applies to mobile platforms)."
+heleniumCapabilityDescription AcceptSslCerts = 
+	"Whether the session should accept all SSL certs by default."
+heleniumCapabilityDescription NativeEvents =
+	"Whether the session is capable of generating native events when simulating user input."
 
 -- :t runHeleniumT
 -- runHeleniumT :: HeleniumT e r w s m a -> ErrorT e (RWST r w s m) a
@@ -58,29 +114,159 @@ runHeleniumM hm r s = runRWST (runErrorT hm) r s
 
 -------------------------------------------------------------------------------
 
+main :: IO ()
+main = do
+	let state = HeleniumState {
+		serverHost = "http://127.0.0.1",
+		serverPort = 4444,
+		serverPath = "/wd/hub",
+		serverBrowser = Chrome,
+		serverCapabilities = [],
+		serverSessionId = Just "11"
+	}
+	(eitherAns, state', writer) <- runHeleniumM (commandUrlPost "Google") "" state
+	putStrLn (show eitherAns)
+
 -- Use session?
 type RequestStateful = Bool
 
-data RequestType = GET | POST String | DELETE
+data RequestMethod = Get | Post String | Delete
 
 type RequestPath = String
 
-data RequestResponse = RequestResponse ErrorCode String
+-------------------------------------------------------------------------------
+
+-- Query the server's current status.
+commandStatus :: String -> HeleniumM String
+commandStatus _ = callSelenium False Get "/status"
+
+-- Create a new session.
+-- TODO: Add desiredCapabilities JSON object
+commandSession :: String -> HeleniumM String
+commandSession s = callSelenium False (Post s) "/session"
+
+-- Returns a list of the currently active sessions.
+commandSessions :: String -> HeleniumM String
+commandSessions _ = callSelenium False Get "/sessions"
+
+-- Retrieve the capabilities of the specified session.
+commandSessionGet :: String -> HeleniumM String
+commandSessionGet _ = callSelenium True Get "/"
+
+-- Delete the session.
+commandSessionDelete :: String -> HeleniumM String
+commandSessionDelete _ = callSelenium True Delete "/"
+
+-- Set the amount of time, in milliseconds, that asynchronous scripts executed 
+-- by /session/:sessionId/execute_async are permitted to run before they are 
+-- aborted and a |Timeout| error is returned to the client.
+commandTimeoutsAsyncScript :: String -> HeleniumM String
+commandTimeoutsAsyncScript s = callSelenium True (Post s) "/timeouts/async_script"
+
+-- Set the amount of time the driver should wait when searching for elements.
+commandTimeoutsImplicitWait :: String -> HeleniumM String
+commandTimeoutsImplicitWait s = callSelenium True (Post s) "/timeouts/implicit_wait"
+
+-- Retrieve the current window handle.
+commandWindowHandle :: String -> HeleniumM String
+commandWindowHandle _ = callSelenium True Get "/window_handle"
+
+-- Retrieve the list of all window handles available to the session.
+commandWindowHandles :: String -> HeleniumM String
+commandWindowHandles _ = callSelenium True Get "/window_handles"
+
+-- Retrieve the URL of the current page.
+commanUrlGet :: String -> HeleniumM String
+commanUrlGet _ = callSelenium True Get "/url"
+
+-- Navigate to a new URL.
+commandUrlPost :: String -> HeleniumM String
+commandUrlPost s = callSelenium True (Post s) "/url"
+
+-- Navigate forwards in the browser history, if possible.
+commandForward :: String -> HeleniumM String
+commandForward _ = callSelenium True (Post "") "/forward"
+
+-- Navigate backwards in the browser history, if possible.
+commandBack :: String -> HeleniumM String
+commandBack _ = callSelenium True (Post "") "/back"
+
+-- Refresh the current page.
+commandRefresh :: String -> HeleniumM String
+commandRefresh _ = callSelenium True (Post "") "/refresh"
+
+-- Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
+commandExecute :: String -> HeleniumM String
+commandExecute s =  callSelenium True (Post s) "/execute"
+
+-- Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
+commandExecuteAsync :: String -> HeleniumM String
+commandExecuteAsync s =  callSelenium True (Post s) "/execute_async"
+
+-- Take a screenshot of the current page.
+commandScreenshot :: String -> HeleniumM String
+commandScreenshot _ = callSelenium True Get "/screenshot"
+
+-------------------------------------------------------------------------------
+
+callSelenium :: RequestStateful -> RequestMethod -> RequestPath -> HeleniumM String
+callSelenium rs rm rp = do
+	req <- makeRequest rs rm rp
+	liftIO $ putStrLn $ show req
+	sendRequest req
+
+sendRequest :: HTTP.Request String -> HeleniumM String
+sendRequest req = do
+	result <- liftIO $ HTTP.simpleHTTP req
+	body <- liftIO $ HTTP.getResponseBody result
+	-- TODO: Parse error
+	-- return $ either left right result where
+		-- left conError = throwError
+		-- right ans = HTTP.rspBody ans
+	return body
 
 -- WebDriver command messages should conform to the HTTP/1.1 request specification. 
 -- All commands accept a content-type of application/json;charset=UTF-8. 
 -- Message bodies for POST and PUT request must use application/json;charset=UTF-8.
-makeRequest :: RequestStateful -> RequestType -> RequestPath -> HeleniumM String
-makeRequest rs rt rp = do
+makeRequest :: RequestStateful -> RequestMethod -> RequestPath -> HeleniumM (HTTP.Request String)
+makeRequest rs rm rp = do
+	uri <- makeRequestUri rs rp
+	method <- makeRequestMethod rm
+	headers <- makeRequestHeaders rm
+	body <- makeRequestBody rm
+	let req = HTTP.Request {
+		HTTP.rqURI = fromJust $ URI.parseURI uri,
+		HTTP.rqMethod = method,
+		HTTP.rqHeaders = headers,
+		HTTP.rqBody = body
+	}
+	return req
+
+makeRequestUri :: RequestStateful -> RequestPath -> HeleniumM String
+makeRequestUri rs rp = do
 	state <- get
 	let baseUri = (serverHost state) ++ ":" ++ (show $ serverPort state)
-	let uriPath = 
+	let uriPath =
 		if rs == True
-		-- Throw (throwError) a proper error when no session available
-		then "/session/" ++ (fromJust $ serverSessionID state) ++ rp
-		else "/session/" ++ rp
-	let uri = baseUri ++ uriPath	
-	return uri
+		-- TODO: Throw (throwError) a proper error when no session available
+		then "/session/" ++ (fromJust $ serverSessionId state) ++ rp
+		else rp
+	return $ baseUri ++ (serverPath state) ++ uriPath
+
+makeRequestMethod :: RequestMethod -> HeleniumM HTTP.RequestMethod
+makeRequestMethod Get = do return HTTP.GET
+makeRequestMethod Delete = do return HTTP.DELETE
+makeRequestMethod (Post _) = do return HTTP.POST
+
+makeRequestHeaders :: RequestMethod -> HeleniumM [HTTP.Header]
+makeRequestHeaders (Post _) = do 
+	return [HTTP.Header HTTP.HdrContentType "application/json;charset=UTF-8"]
+makeRequestHeaders _ = do
+	return []
+
+makeRequestBody :: RequestMethod -> HeleniumM String
+makeRequestBody (Post body) = do return body
+makeRequestBody _ = do return ""
 
 data ErrorCode = 
 	Success |
