@@ -273,8 +273,10 @@ makeRequestMethod Delete = do return HTTP.DELETE
 makeRequestMethod (Post _) = do return HTTP.POST
 
 makeRequestHeaders :: RequestMethod -> HeleniumM [HTTP.Header]
-makeRequestHeaders (Post _) = do 
-	return [HTTP.Header HTTP.HdrContentType "application/json;charset=UTF-8"]
+makeRequestHeaders (Post s) = do 
+	return [
+		HTTP.Header HTTP.HdrContentType "application/json;charset=UTF-8",
+		HTTP.Header HTTP.HdrContentLength $ show (length s)]
 makeRequestHeaders _ = do
 	return []
 
