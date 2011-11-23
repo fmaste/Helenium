@@ -138,8 +138,8 @@ type RequestPath = String
 -------------------------------------------------------------------------------
 
 -- Query the server's current status.
-commandStatus :: String -> HeleniumM String
-commandStatus _ = callSelenium False Get "/status"
+commandStatus :: HeleniumM String
+commandStatus = callSelenium False Get "/status"
 
 -- Create a new session.
 -- TODO: Add desiredCapabilities JSON object
@@ -147,8 +147,8 @@ commandSession :: String -> HeleniumM String
 commandSession s = callSelenium False (Post s) "/session"
 
 -- Returns a list of the currently active sessions.
-commandSessions :: String -> HeleniumM String
-commandSessions _ = callSelenium False Get "/sessions"
+_commandSessions :: String -> HeleniumM String
+_commandSessions _ = callSelenium False Get "/sessions"
 
 -- Retrieve the capabilities of the specified session.
 commandSessionGet :: String -> HeleniumM String
