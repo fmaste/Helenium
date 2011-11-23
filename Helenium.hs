@@ -134,6 +134,7 @@ data RequestMethod = Get | Post String | Delete
 
 type RequestPath = String
 
+-- Commands
 -------------------------------------------------------------------------------
 
 -- Query the server's current status.
