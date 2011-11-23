@@ -10,6 +10,7 @@ import Control.Monad.Error
 import Control.Monad.RWS.Strict
 import qualified Network.URI as URI
 import qualified Network.HTTP as HTTP
+import qualified Text.JSON as JSON
 
 -------------------------------------------------------------------------------
 
@@ -94,14 +95,20 @@ main :: IO ()
 main = do
 	let state = HeleniumState {
 		serverHost = "http://127.0.0.1",
-		serverPort = 4444,
-		serverPath = "/wd/hub",
-		serverCapabilities = [],
-		serverSessionId = Just "11"
+		serverPort = 9515,
+		serverPath = "",
 		serverBrowser = HeleniumBrowser Chrome "16" Linux,
+		serverCapabilities = [JavascriptEnabled],
+		serverSessionId = Nothing
 	}
-	(eitherAns, state', writer) <- runHeleniumM (commandUrlPost "Google") "" state
+	(eitherAns, state', writer) <- runHeleniumM test "" state
 	putStrLn (show eitherAns)
+
+test :: HeleniumM ()
+test = do
+	connect
+	goTo "www.olx.com"
+	return ()
 
 -- Use session?
 type RequestStateful = Bool
@@ -109,6 +116,12 @@ type RequestStateful = Bool
 data RequestMethod = Get | Post String | Delete
 
 type RequestPath = String
+
+data Response = Response ResponseStatus ResponseValue
+
+type ResponseStatus = Integer
+
+type ResponseValue = JSON.JSValue 
 
 -- Commands
 -------------------------------------------------------------------------------
@@ -119,8 +132,17 @@ commandStatus = callSelenium False Get "/status"
 
 -- Create a new session.
 -- TODO: Add desiredCapabilities JSON object
-commandSession :: String -> HeleniumM String
-commandSession s = callSelenium False (Post s) "/session"
+connect :: HeleniumM String
+connect = do
+	state <- get
+	let browser = serverBrowser state
+	let capabilities = serverCapabilities state
+	ans <- callSelenium False 
+		(Post "{\"desiredCapabilities\": {\"javascriptEnabled\": true}}") "/session"
+	-- Response is: {"status":303,"value":"/session/f3ae93822f855f545dbdab66cc556453"}
+	let json = JSON.decode ans :: JSON.Result JSON.JSValue
+	liftIO $ putStrLn $ show json
+	return ""
 
 -- Returns a list of the currently active sessions.
 _commandSessions :: String -> HeleniumM String
@@ -137,12 +159,12 @@ commandSessionDelete _ = callSelenium True Delete "/"
 -- Set the amount of time, in milliseconds, that asynchronous scripts executed 
 -- by /session/:sessionId/execute_async are permitted to run before they are 
 -- aborted and a |Timeout| error is returned to the client.
-commandTimeoutsAsyncScript :: String -> HeleniumM String
-commandTimeoutsAsyncScript s = callSelenium True (Post s) "/timeouts/async_script"
+commandTimeoutsSetAsyncScript :: String -> HeleniumM String
+commandTimeoutsSetAsyncScript s = callSelenium True (Post s) "/timeouts/async_script"
 
 -- Set the amount of time the driver should wait when searching for elements.
-commandTimeoutsImplicitWait :: String -> HeleniumM String
-commandTimeoutsImplicitWait s = callSelenium True (Post s) "/timeouts/implicit_wait"
+commandTimeoutsSetImplicitWait :: String -> HeleniumM String
+commandTimeoutsSetImplicitWait s = callSelenium True (Post s) "/timeouts/implicit_wait"
 
 -- Retrieve the current window handle.
 commandWindowHandle :: String -> HeleniumM String
@@ -157,8 +179,8 @@ commanUrlGet :: String -> HeleniumM String
 commanUrlGet _ = callSelenium True Get "/url"
 
 -- Navigate to a new URL.
-commandUrlPost :: String -> HeleniumM String
-commandUrlPost s = callSelenium True (Post s) "/url"
+goTo :: String -> HeleniumM String
+goTo url = callSelenium True (Post ("{\"url\":" ++ url ++ "}")) "/url"
 
 -- Navigate forwards in the browser history, if possible.
 commandForward :: String -> HeleniumM String
@@ -203,18 +225,29 @@ commandWindowClose _ = callSelenium True Delete "/window"
 callSelenium :: RequestStateful -> RequestMethod -> RequestPath -> HeleniumM String
 callSelenium rs rm rp = do
 	req <- makeRequest rs rm rp
-	liftIO $ putStrLn $ show req
 	sendRequest req
 
 sendRequest :: HTTP.Request String -> HeleniumM String
 sendRequest req = do
 	result <- liftIO $ HTTP.simpleHTTP req
+	liftIO $ putStrLn $ show result
 	body <- liftIO $ HTTP.getResponseBody result
+	liftIO $ putStrLn body
 	-- TODO: Parse error
 	-- return $ either left right result where
 		-- left conError = throwError
 		-- right ans = HTTP.rspBody ans
+	let (JSON.Ok json) = JSON.decode body :: JSON.Result (JSON.JSObject JSON.JSValue)
+	-- let status = JSON.valFromObj "status" json
+	-- let value = JSON.valFromObj "value" json
+	liftIO $ putStrLn $ show json
 	return body
+
+processResponseJsonBody :: JSON.JSObject JSON.JSValue -> JSON.Result Response
+processResponseJsonBody json = do
+	status <- JSON.valFromObj "status" json
+	value <- JSON.valFromObj "value" json
+	return $ Response status value
 
 -- WebDriver command messages should conform to the HTTP/1.1 request specification. 
 -- All commands accept a content-type of application/json;charset=UTF-8. 
