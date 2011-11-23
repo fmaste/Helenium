@@ -64,46 +64,19 @@ data HeleniumCapability =
 	AcceptSslCerts |
 	NativeEvents
 
-heleniumCapabilitiesKeys = [
-		(JavascriptEnabled, "javascriptEnabled"),
-		(TakesScreenshot, "takesScreenshot"),
-		(HandlesAlerts, "handlesAlerts"),
-		(DatabaseEnabled, "databaseEnabled"),
-		(LocationContextEnabled, "locationContextEnabled"),
-		(ApplicationCacheEnabled, "applicationCacheEnabled"),
-		(BrowserConnectionEnabled, "browserConnectionEnabled"),
-		(CssSelectorsEnabled, "cssSelectorsEnabled"),
-		(WebStorageEnabled, "webStorageEnabled"),
-		(Rotatable, "rotatable"),
-		(AcceptSslCerts, "acceptSslCerts"),
-		(NativeEvents, "nativeEvents")
-	]	
-
-heleniumCapabilityDescription :: HeleniumCapability -> String
-heleniumCapabilityDescription JavascriptEnabled = 
-	"Whether the session supports executing user supplied JavaScript in the context of the current page."
-heleniumCapabilityDescription TakesScreenshot = 
-	"Whether the session supports taking screenshots of the current page."
-heleniumCapabilityDescription HandlesAlerts = 
-	"Whether the session can interact with modal popups, such as window.alert and window.confirm."
-heleniumCapabilityDescription DatabaseEnabled =
-	"Whether the session can interact database storage."
-heleniumCapabilityDescription LocationContextEnabled =
-	"Whether the session can set and query the browser's location context."
-heleniumCapabilityDescription ApplicationCacheEnabled = 
-	"Whether the session can interact with the application cache."
-heleniumCapabilityDescription BrowserConnectionEnabled =
-	"Whether the session can query for the browser's connectivity and disable it if desired."
-heleniumCapabilityDescription CssSelectorsEnabled =
-	"Whether the session supports CSS selectors when searching for elements."
-heleniumCapabilityDescription WebStorageEnabled =
-	"Whether the session supports interactions with storage objects."
-heleniumCapabilityDescription Rotatable =
-	"Whether the session can rotate the current page's current layout between portrait and landscape orientations (only applies to mobile platforms)."
-heleniumCapabilityDescription AcceptSslCerts = 
-	"Whether the session should accept all SSL certs by default."
-heleniumCapabilityDescription NativeEvents =
-	"Whether the session is capable of generating native events when simulating user input."
+heleniumCapabilityKey :: HeleniumCapability -> String
+heleniumCapabilityKey JavascriptEnabled = "javascriptEnabled"
+heleniumCapabilityKey TakesScreenshot = "takesScreenshot"
+heleniumCapabilityKey HandlesAlerts = "handlesAlerts"
+heleniumCapabilityKey DatabaseEnabled = "databaseEnabled"
+heleniumCapabilityKey LocationContextEnabled = "locationContextEnabled"
+heleniumCapabilityKey ApplicationCacheEnabled = "applicationCacheEnabled"
+heleniumCapabilityKey BrowserConnectionEnabled = "browserConnectionEnabled"
+heleniumCapabilityKey CssSelectorsEnabled = "cssSelectorsEnabled"
+heleniumCapabilityKey WebStorageEnabled = "webStorageEnabled"
+heleniumCapabilityKey Rotatable = "rotatable"
+heleniumCapabilityKey AcceptSslCerts = "acceptSslCerts"
+heleniumCapabilityKey NativeEvents = "nativeEvents"
 
 -- :t runHeleniumT
 -- runHeleniumT :: HeleniumT e r w s m a -> ErrorT e (RWST r w s m) a
