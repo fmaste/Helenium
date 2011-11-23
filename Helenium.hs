@@ -197,15 +197,29 @@ commandRefresh _ = callSelenium True (Post "") "/refresh"
 
 -- Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
 commandExecute :: String -> HeleniumM String
-commandExecute s =  callSelenium True (Post s) "/execute"
+commandExecute s = callSelenium True (Post s) "/execute"
 
 -- Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
 commandExecuteAsync :: String -> HeleniumM String
-commandExecuteAsync s =  callSelenium True (Post s) "/execute_async"
+commandExecuteAsync s = callSelenium True (Post s) "/execute_async"
 
 -- Take a screenshot of the current page.
 commandScreenshot :: String -> HeleniumM String
 commandScreenshot _ = callSelenium True Get "/screenshot"
+
+-- TODO: IME commands
+
+-- Change focus to another frame on the page.
+commandFrame :: String -> HeleniumM String
+commandFrame s = callSelenium True (Post s) "/frame"
+
+-- Change focus to another window.
+commandWindowFocus :: String -> HeleniumM String
+commandWindowFocus s = callSelenium True (Post s) "/window"
+
+-- Close the current window.
+commandWindowClose :: String -> HeleniumM String
+commandWindowClose _ = callSelenium True Delete "/window"
 
 -------------------------------------------------------------------------------
 
