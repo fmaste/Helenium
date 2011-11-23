@@ -41,14 +41,17 @@ data HeleniumState =
 		serverSessionId :: Maybe String
 	}
 
-data HeleniumBrowser = Chrome | Firefox | HtmlUnit | IE | IPhone
+data HeleniumBrowser = 
+	HeleniumBrowser 
+		HeleniumBrowserName 
+		HeleniumBrowserVersion 
+		HeleniumBrowserPlatform
 
-instance Show HeleniumBrowser where
-	show Chrome	= "Chrome"
-	show Firefox	= "Firefox"
-	show HtmlUnit	= "HtmlUnit"
-	show IE		= "Internet Explorer"
-	show IPhone	= "iPhone"
+data HeleniumBrowserName = Chrome | Firefox | HtmlUnit | IE | IPhone
+
+type HeleniumBrowserVersion = String
+
+data HeleniumBrowserPlatform = Windows| XP | Vista | Mac | Linux | Unix
 
 data HeleniumCapability =
 	JavascriptEnabled |
@@ -93,9 +96,9 @@ main = do
 		serverHost = "http://127.0.0.1",
 		serverPort = 4444,
 		serverPath = "/wd/hub",
-		serverBrowser = Chrome,
 		serverCapabilities = [],
 		serverSessionId = Just "11"
+		serverBrowser = HeleniumBrowser Chrome "16" Linux,
 	}
 	(eitherAns, state', writer) <- runHeleniumM (commandUrlPost "Google") "" state
 	putStrLn (show eitherAns)
