@@ -133,7 +133,12 @@ connect = do
 		"/session"
 	-- Response is: {"status":303,"value":"/session/f3ae93822f855f545dbdab66cc556453"}
 	let json = responseValue ans
-	liftIO $ putStrLn $ show json
+	case json of
+		JSON.JSString jsString -> do
+			let sessString = JSON.fromJSString jsString 
+			let sessId = drop (length "/session/") sessString
+			put $ state {serverSessionId = (Just sessId)}
+		_ -> throwError "Not a valid new session answer."
 	return () 
 
 -- Returns a list of the currently active sessions.
