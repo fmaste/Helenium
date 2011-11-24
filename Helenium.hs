@@ -248,16 +248,17 @@ type ResponseValue = JSON.JSValue
 callSelenium :: Request -> HeleniumM String
 callSelenium req = do
 	httpReq <- makeRequest req
-	sendRequest httpReq
+	res <- sendRequest httpReq
+	processResponse res
 
-sendRequest :: HTTP.Request String -> HeleniumM String
+sendRequest :: HTTP.Request String -> HeleniumM (HTTP.Response String)
 sendRequest req = do
 	result <- liftIO $ catch 
 		(HTTP.simpleHTTP req)
 		(\ioErr -> return $ Stream.failMisc (show ioErr)) 
 	either whenLeft whenRight result where
 		whenLeft connErr = throwError $ show connErr
-		whenRight response = processResponse response
+		whenRight response = return response
 
 processResponse :: HTTP.Response String -> HeleniumM String
 processResponse res = do
