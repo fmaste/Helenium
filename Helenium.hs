@@ -297,7 +297,6 @@ processResponse res = do
 	-- Do something with the haders??
 	let headers = HTTP.rspHeaders res
 	let body = HTTP.rspBody res -- The body string
-	liftIO $ putStrLn body
 	(status, value) <- processResponseBody body
 	return (Response (x,y,z) reason status value)
 
@@ -307,17 +306,18 @@ processResponseCodes (x, y, z) reason = return ""
 
 processResponseBody :: String -> HeleniumM (ResponseStatus, ResponseValue)
 processResponseBody body = do
-	let jsonResult = JSON.decode body :: JSON.Result JSON.JSValue
+	let jsonResult = processResponseBodyJson body
 	case jsonResult of
 		JSON.Error msg -> throwError msg
-		JSON.Ok json -> processResponseBodyJson json
+		JSON.Ok ans -> return ans
 
-processResponseBodyJson :: JSON.JSValue -> HeleniumM (ResponseStatus, ResponseValue)
-processResponseBodyJson json = do
+processResponseBodyJson :: String -> JSON.Result (ResponseStatus, ResponseValue)
+processResponseBodyJson body = do
+	json <- JSON.decode body :: JSON.Result (JSON.JSObject JSON.JSValue)
 	-- status <- JSON.valFromObj "status" json
-	-- value <- JSON.valFromObj "value" json
-	return (0, json)
-
+	value <- JSON.valFromObj "value" json
+	-- TODO: Parse status
+	return (0, value)
 
 -- WebDriver command messages should conform to the HTTP/1.1 request specification. 
 -- All commands accept a content-type of application/json;charset=UTF-8. 
