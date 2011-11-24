@@ -110,22 +110,6 @@ test = do
 	goTo "www.olx.com"
 	return ()
 
--- Use session?
-
-data Request = Request RequestStateful RequestMethod RequestPath
-
-type RequestStateful = Bool
-
-data RequestMethod = Get | Post String | Delete
-
-type RequestPath = String
-
-data Response = Response ResponseStatus ResponseValue
-
-type ResponseStatus = Integer
-
-type ResponseValue = JSON.JSValue 
-
 -- Commands
 -------------------------------------------------------------------------------
 
@@ -245,6 +229,20 @@ commandWindowClose _ = callSelenium $
 	Request True Delete "/window"
 
 -------------------------------------------------------------------------------
+
+data Request = Request RequestStateful RequestMethod RequestPath
+
+type RequestStateful = Bool
+
+data RequestMethod = Get | Post String | Delete
+
+type RequestPath = String
+
+data Response = Response ResponseStatus ResponseValue
+
+type ResponseStatus = Integer
+
+type ResponseValue = JSON.JSValue
 
 callSelenium :: Request -> HeleniumM String
 callSelenium req = do
