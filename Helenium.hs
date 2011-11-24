@@ -303,6 +303,8 @@ processResponse res = do
 	-- Do something with the haders??
 	let headers = HTTP.rspHeaders res
 	let body = HTTP.rspBody res -- The body string
+	liftIO $ putStr $ show res
+	liftIO $ putStrLn body
 	(status, value) <- processResponseBody body
 	return (Response (x,y,z) reason status value)
 
@@ -340,6 +342,8 @@ makeRequest (Request rs rm rp) = do
 		HTTP.rqHeaders = headers,
 		HTTP.rqBody = body
 	}
+	liftIO $ putStr $ show req
+	liftIO $ putStrLn body
 	return req
 
 makeRequestUri :: RequestStateful -> RequestPath -> HeleniumM String
