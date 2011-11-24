@@ -136,8 +136,8 @@ connect = do
 	return () 
 
 -- Delete the session.
-commandSessionDelete :: String -> HeleniumM ()
-commandSessionDelete _ = do
+disconnect :: HeleniumM ()
+disconnect = do
 	callSelenium $ Request True Delete "/"
 	return ()
 
