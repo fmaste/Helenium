@@ -108,7 +108,13 @@ main = do
 test :: HeleniumM ()
 test = do
 	connect
+	goTo "http://www.google.com"
 	goTo "http://www.olx.com"
+	back
+	forward
+	refresh
+	url <- getUrl
+	disconnect
 	return ()
 
 -- Commands
