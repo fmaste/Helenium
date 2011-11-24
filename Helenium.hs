@@ -255,6 +255,7 @@ sendRequest :: HTTP.Request String -> HeleniumM (HTTP.Response String)
 sendRequest req = do
 	result <- liftIO $ catch 
 		(HTTP.simpleHTTP req)
+		-- Send the ioError inside the HTTP.Result type
 		(\ioErr -> return $ Stream.failMisc (show ioErr)) 
 	either whenLeft whenRight result where
 		whenLeft connErr = throwError $ show connErr
