@@ -258,6 +258,14 @@ sendRequest req = do
 	either whenLeft whenRight result where
 		whenLeft connErr = throwError $ show connErr
 		whenRight response = processResponse response
+
+processResponse :: HTTP.Response String -> HeleniumM String
+processResponse res = do
+	let (x,y,z) = HTTP.rspCode res -- HTTP 200, etc
+	let code = x * 100 + y * 10 + z * 1
+	let reason = HTTP.rspReason res -- The "Ok", "Found" that comes after the HTTP code
+	let headers = HTTP.rspHeaders res
+	let body = HTTP.rspBody res -- The body string
 	let (JSON.Ok json) = JSON.decode body :: JSON.Result (JSON.JSObject JSON.JSValue)
 	-- let status = JSON.valFromObj "status" json
 	-- let value = JSON.valFromObj "value" json
