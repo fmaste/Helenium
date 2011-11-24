@@ -10,6 +10,7 @@ import Control.Monad.Error
 import Control.Monad.RWS.Strict
 import qualified Network.URI as URI
 import qualified Network.HTTP as HTTP
+import qualified Network.HTTP.Stream as Stream
 import qualified Text.JSON as JSON
 
 -------------------------------------------------------------------------------
@@ -251,14 +252,12 @@ callSelenium req = do
 
 sendRequest :: HTTP.Request String -> HeleniumM String
 sendRequest req = do
-	result <- liftIO $ HTTP.simpleHTTP req
-	liftIO $ putStrLn $ show result
-	body <- liftIO $ HTTP.getResponseBody result
-	liftIO $ putStrLn body
-	-- TODO: Parse error
-	-- return $ either left right result where
-		-- left conError = throwError
-		-- right ans = HTTP.rspBody ans
+	result <- liftIO $ catch 
+		(HTTP.simpleHTTP req)
+		(\ioErr -> return $ Stream.failMisc (show ioErr)) 
+	either whenLeft whenRight result where
+		whenLeft connErr = throwError $ show connErr
+		whenRight response = processResponse response
 	let (JSON.Ok json) = JSON.decode body :: JSON.Result (JSON.JSObject JSON.JSValue)
 	-- let status = JSON.valFromObj "status" json
 	-- let value = JSON.valFromObj "value" json
