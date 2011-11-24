@@ -248,8 +248,8 @@ type ResponseValue = JSON.JSValue
 callSelenium :: Request -> HeleniumM String
 callSelenium req = do
 	httpReq <- makeRequest req
-	res <- sendRequest httpReq
-	processResponse res
+	httpRes <- sendRequest httpReq
+	processResponse httpRes
 
 sendRequest :: HTTP.Request String -> HeleniumM (HTTP.Response String)
 sendRequest req = do
