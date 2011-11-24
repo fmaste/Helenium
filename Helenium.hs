@@ -111,6 +111,9 @@ test = do
 	return ()
 
 -- Use session?
+
+data Request = Request RequestStateful RequestMethod RequestPath
+
 type RequestStateful = Bool
 
 data RequestMethod = Get | Post String | Delete
@@ -128,7 +131,8 @@ type ResponseValue = JSON.JSValue
 
 -- Query the server's current status.
 commandStatus :: HeleniumM String
-commandStatus = callSelenium False Get "/status"
+commandStatus = callSelenium $
+	Request False Get "/status"
 
 -- Create a new session.
 -- TODO: Add desiredCapabilities JSON object
@@ -137,8 +141,10 @@ connect = do
 	state <- get
 	let browser = serverBrowser state
 	let capabilities = serverCapabilities state
-	ans <- callSelenium False 
-		(Post "{\"desiredCapabilities\": {\"javascriptEnabled\": true}}") "/session"
+	ans <- callSelenium $ Request 
+		False 
+		(Post "{\"desiredCapabilities\": {\"javascriptEnabled\": true}}") 
+		"/session"
 	-- Response is: {"status":303,"value":"/session/f3ae93822f855f545dbdab66cc556453"}
 	let json = JSON.decode ans :: JSON.Result JSON.JSValue
 	liftIO $ putStrLn $ show json
@@ -146,86 +152,104 @@ connect = do
 
 -- Returns a list of the currently active sessions.
 _commandSessions :: String -> HeleniumM String
-_commandSessions _ = callSelenium False Get "/sessions"
+_commandSessions _ = callSelenium $
+	Request False Get "/sessions"
 
 -- Retrieve the capabilities of the specified session.
 commandSessionGet :: String -> HeleniumM String
-commandSessionGet _ = callSelenium True Get "/"
+commandSessionGet _ = callSelenium $
+	Request True Get "/"
 
 -- Delete the session.
 commandSessionDelete :: String -> HeleniumM String
-commandSessionDelete _ = callSelenium True Delete "/"
+commandSessionDelete _ = callSelenium $
+	Request True Delete "/"
 
 -- Set the amount of time, in milliseconds, that asynchronous scripts executed 
 -- by /session/:sessionId/execute_async are permitted to run before they are 
 -- aborted and a |Timeout| error is returned to the client.
 commandTimeoutsSetAsyncScript :: String -> HeleniumM String
-commandTimeoutsSetAsyncScript s = callSelenium True (Post s) "/timeouts/async_script"
+commandTimeoutsSetAsyncScript s = callSelenium $
+	Request True (Post s) "/timeouts/async_script"
 
 -- Set the amount of time the driver should wait when searching for elements.
 commandTimeoutsSetImplicitWait :: String -> HeleniumM String
-commandTimeoutsSetImplicitWait s = callSelenium True (Post s) "/timeouts/implicit_wait"
+commandTimeoutsSetImplicitWait s = callSelenium $
+	Request True (Post s) "/timeouts/implicit_wait"
 
 -- Retrieve the current window handle.
 commandWindowHandle :: String -> HeleniumM String
-commandWindowHandle _ = callSelenium True Get "/window_handle"
+commandWindowHandle _ = callSelenium $
+	Request True Get "/window_handle"
 
 -- Retrieve the list of all window handles available to the session.
 commandWindowHandles :: String -> HeleniumM String
-commandWindowHandles _ = callSelenium True Get "/window_handles"
+commandWindowHandles _ = callSelenium $
+	Request True Get "/window_handles"
 
 -- Retrieve the URL of the current page.
 commanUrlGet :: String -> HeleniumM String
-commanUrlGet _ = callSelenium True Get "/url"
+commanUrlGet _ = callSelenium $
+	Request True Get "/url"
 
 -- Navigate to a new URL.
 goTo :: String -> HeleniumM String
-goTo url = callSelenium True (Post ("{\"url\":" ++ url ++ "}")) "/url"
+goTo url = callSelenium $
+	Request True (Post ("{\"url\":" ++ url ++ "}")) "/url"
 
 -- Navigate forwards in the browser history, if possible.
 commandForward :: String -> HeleniumM String
-commandForward _ = callSelenium True (Post "") "/forward"
+commandForward _ = callSelenium $
+	Request True (Post "") "/forward"
 
 -- Navigate backwards in the browser history, if possible.
 commandBack :: String -> HeleniumM String
-commandBack _ = callSelenium True (Post "") "/back"
+commandBack _ = callSelenium $
+	Request True (Post "") "/back"
 
 -- Refresh the current page.
 commandRefresh :: String -> HeleniumM String
-commandRefresh _ = callSelenium True (Post "") "/refresh"
+commandRefresh _ = callSelenium $
+	Request True (Post "") "/refresh"
 
 -- Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
 commandExecute :: String -> HeleniumM String
-commandExecute s = callSelenium True (Post s) "/execute"
+commandExecute s = callSelenium $
+	Request True (Post s) "/execute"
 
 -- Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
 commandExecuteAsync :: String -> HeleniumM String
-commandExecuteAsync s = callSelenium True (Post s) "/execute_async"
+commandExecuteAsync s = callSelenium $
+	Request True (Post s) "/execute_async"
 
 -- Take a screenshot of the current page.
 commandScreenshot :: String -> HeleniumM String
-commandScreenshot _ = callSelenium True Get "/screenshot"
+commandScreenshot _ = callSelenium $
+	Request True Get "/screenshot"
 
 -- TODO: IME commands
 
 -- Change focus to another frame on the page.
 commandFrame :: String -> HeleniumM String
-commandFrame s = callSelenium True (Post s) "/frame"
+commandFrame s = callSelenium $
+	Request True (Post s) "/frame"
 
 -- Change focus to another window.
 commandWindowFocus :: String -> HeleniumM String
-commandWindowFocus s = callSelenium True (Post s) "/window"
+commandWindowFocus s = callSelenium $
+	Request True (Post s) "/window"
 
 -- Close the current window.
 commandWindowClose :: String -> HeleniumM String
-commandWindowClose _ = callSelenium True Delete "/window"
+commandWindowClose _ = callSelenium $
+	Request True Delete "/window"
 
 -------------------------------------------------------------------------------
 
-callSelenium :: RequestStateful -> RequestMethod -> RequestPath -> HeleniumM String
-callSelenium rs rm rp = do
-	req <- makeRequest rs rm rp
-	sendRequest req
+callSelenium :: Request -> HeleniumM String
+callSelenium req = do
+	httpReq <- makeRequest req
+	sendRequest httpReq
 
 sendRequest :: HTTP.Request String -> HeleniumM String
 sendRequest req = do
@@ -252,8 +276,8 @@ processResponseJsonBody json = do
 -- WebDriver command messages should conform to the HTTP/1.1 request specification. 
 -- All commands accept a content-type of application/json;charset=UTF-8. 
 -- Message bodies for POST and PUT request must use application/json;charset=UTF-8.
-makeRequest :: RequestStateful -> RequestMethod -> RequestPath -> HeleniumM (HTTP.Request String)
-makeRequest rs rm rp = do
+makeRequest :: Request -> HeleniumM (HTTP.Request String)
+makeRequest (Request rs rm rp) = do
 	uri <- makeRequestUri rs rp
 	method <- makeRequestMethod rm
 	headers <- makeRequestHeaders rm
