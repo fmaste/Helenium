@@ -189,7 +189,8 @@ commanUrlGet _ = do
 -- Navigate to a new URL.
 goTo :: String -> HeleniumM ()
 goTo url = do
-	callSelenium $ Request True (Post ("{\"url\":" ++ url ++ "}")) "/url"
+	let body = JSON.toJSObject [("url", JSON.toJSString url)]
+	callSelenium $ Request True (Post $ JSON.encode body) "/url"
 	return ()
 
 -- Navigate forwards in the browser history, if possible.
