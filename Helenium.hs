@@ -183,20 +183,20 @@ goTo url = do
 	return ()
 
 -- Navigate forwards in the browser history, if possible.
-commandForward :: String -> HeleniumM ()
-commandForward _ = do
+forward :: HeleniumM ()
+forward = do
 	callSelenium $ Request True (Post "") "/forward"
 	return ()
 
 -- Navigate backwards in the browser history, if possible.
-commandBack :: String -> HeleniumM ()
-commandBack _ = do
+back :: HeleniumM ()
+back = do
 	callSelenium $ Request True (Post "") "/back"
 	return ()
 
 -- Refresh the current page.
-commandRefresh :: String -> HeleniumM ()
-commandRefresh _ = do
+refresh :: HeleniumM ()
+refresh = do
 	callSelenium $ Request True (Post "") "/refresh"
 	return ()
 
