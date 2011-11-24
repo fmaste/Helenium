@@ -306,12 +306,13 @@ makeRequest (Request rs rm rp) = do
 makeRequestUri :: RequestStateful -> RequestPath -> HeleniumM String
 makeRequestUri rs rp = do
 	state <- get
+	let sessionId = serverSessionId state
 	let baseUri = (serverHost state) ++ ":" ++ (show $ serverPort state)
-	let uriPath =
-		if rs == True
-		-- TODO: Throw (throwError) a proper error when no session available
-		then "/session/" ++ (fromJust $ serverSessionId state) ++ rp
-		else rp
+	uriPath <- if rs == True
+		then if isNothing sessionId
+			then throwError "Making a stateful call without a session"
+			else return ("/session/" ++ (fromJust sessionId) ++ rp)
+		else return rp
 	return $ baseUri ++ (serverPath state) ++ uriPath
 
 makeRequestMethod :: RequestMethod -> HeleniumM HTTP.RequestMethod
