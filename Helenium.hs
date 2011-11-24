@@ -114,12 +114,6 @@ test = do
 -- Commands
 -------------------------------------------------------------------------------
 
--- Query the server's current status.
-commandStatus :: HeleniumM ()
-commandStatus = do
-	callSelenium $ Request False Get "/status"
-	return ()
-
 -- Create a new session.
 -- TODO: Add desiredCapabilities JSON object
 connect :: HeleniumM ()
@@ -140,18 +134,6 @@ connect = do
 			put $ state {serverSessionId = (Just sessId)}
 		_ -> throwError "Not a valid new session answer."
 	return () 
-
--- Returns a list of the currently active sessions.
-_commandSessions :: String -> HeleniumM ()
-_commandSessions _ = do
-	callSelenium $ Request False Get "/sessions"
-	return ()
-
--- Retrieve the capabilities of the specified session.
-commandSessionGet :: String -> HeleniumM ()
-commandSessionGet _ = do
-	callSelenium $ Request True Get "/"
-	return ()
 
 -- Delete the session.
 commandSessionDelete :: String -> HeleniumM ()
@@ -233,8 +215,6 @@ commandScreenshot :: String -> HeleniumM ()
 commandScreenshot _ = do
 	callSelenium $ Request True Get "/screenshot"
 	return ()
-
--- TODO: IME commands
 
 -- Change focus to another frame on the page.
 commandFrame :: String -> HeleniumM ()
