@@ -108,7 +108,7 @@ main = do
 test :: HeleniumM ()
 test = do
 	connect
-	goTo "www.olx.com"
+	goTo "http://www.olx.com"
 	return ()
 
 -- Commands
