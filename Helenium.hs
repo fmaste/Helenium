@@ -266,6 +266,8 @@ processResponse res = do
 	let (x,y,z) = HTTP.rspCode res -- HTTP 200, etc
 	let code = x * 100 + y * 10 + z * 1
 	let reason = HTTP.rspReason res -- The "Ok", "Found" that comes after the HTTP code
+	processResponseCodes (x, y, z) reason
+	-- Do something with the haders??
 	let headers = HTTP.rspHeaders res
 	let body = HTTP.rspBody res -- The body string
 	let (JSON.Ok json) = JSON.decode body :: JSON.Result (JSON.JSObject JSON.JSValue)
@@ -273,6 +275,10 @@ processResponse res = do
 	-- let value = JSON.valFromObj "value" json
 	liftIO $ putStrLn $ show json
 	return body
+
+processResponseCodes :: (Int, Int, Int) -> String -> HeleniumM String
+-- TODO: Do something!!!
+processResponseCodes (x, y, z) reason = return ""
 
 processResponseBody :: JSON.JSObject JSON.JSValue -> JSON.Result Response
 processResponseBody json = do
