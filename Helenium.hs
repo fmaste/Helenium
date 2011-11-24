@@ -265,8 +265,8 @@ sendRequest req = do
 	liftIO $ putStrLn $ show json
 	return body
 
-processResponseJsonBody :: JSON.JSObject JSON.JSValue -> JSON.Result Response
-processResponseJsonBody json = do
+processResponseBody :: JSON.JSObject JSON.JSValue -> JSON.Result Response
+processResponseBody json = do
 	status <- JSON.valFromObj "status" json
 	value <- JSON.valFromObj "value" json
 	return $ Response status value
