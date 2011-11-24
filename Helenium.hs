@@ -168,10 +168,12 @@ commandWindowHandles _ = do
 	return ()
 
 -- Retrieve the URL of the current page.
-commanUrlGet :: String -> HeleniumM ()
-commanUrlGet _ = do
-	callSelenium $ Request True Get "/url"
-	return ()
+getUrl :: HeleniumM String
+getUrl = do
+	ans <- callSelenium $ Request True Get "/url"
+	case responseValue ans of
+		JSON.JSString jsString -> return $ JSON.fromJSString jsString
+		_ -> throwError "Error reading url"
 
 -- Navigate to a new URL.
 goTo :: String -> HeleniumM ()
