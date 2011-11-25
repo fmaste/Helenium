@@ -258,11 +258,15 @@ getElementBy using value = do
 		("value", JSON.toJSString value)]
 	-- Return {"ELEMENT":":wdc:1322198176445"}
 	ans <- callSelenium $ Request True (Post $ JSON.encode body) "/element"
+	processElementResponse ans
+
+processElementResponse :: Response -> HeleniumM String
+processElementResponse ans = do 
 	case responseValue ans of
 		(JSON.JSObject obj) -> case JSON.valFromObj "ELEMENT" obj of
 			JSON.Ok (JSON.JSString element) -> return $ JSON.fromJSString element
-			_ -> throwError "Error reading element"
-		_ -> throwError "Error reading element"
+			_ -> throwError "Error reading element response"
+		_ -> throwError "Error reading element response"
 
 getElementById :: String -> HeleniumM String
 getElementById id = getElementBy "id" id
