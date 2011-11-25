@@ -277,6 +277,8 @@ getElementByClassName className = getElementBy "class name" className
 getElementByCssSelector :: String -> HeleniumM String
 getElementByCssSelector css = getElementBy "css selector" css
 
+getElementByXPath :: String -> HeleniumM String
+getElementByXPath x = getElementBy "xpath" x
 -------------------------------------------------------------------------------
 
 data Request = Request RequestStateful RequestMethod RequestPath
