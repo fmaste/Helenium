@@ -192,9 +192,10 @@ sleep ms = do
 -- Set the amount of time, in milliseconds, that asynchronous scripts executed 
 -- by /session/:sessionId/execute_async are permitted to run before they are 
 -- aborted and a |Timeout| error is returned to the client.
-commandTimeoutsSetAsyncScript :: String -> HeleniumM ()
-commandTimeoutsSetAsyncScript s = do
-	callSelenium $ Request True (Post s) "/timeouts/async_script"
+setTimeoutAsyncScript :: Int -> HeleniumM ()
+setTimeoutAsyncScript ms = do
+	let body = JSON.toJSObject [("ms", JSON.showJSON ms)]
+	callSelenium $ Request True (Post $ JSON.encode body) "/timeouts/async_script"
 	return ()
 
 -- Retrieve the current window handle.
