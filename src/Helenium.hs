@@ -49,10 +49,11 @@ data HeleniumState =
 	}
 
 data HeleniumBrowser = 
-	HeleniumBrowser 
-		HeleniumBrowserName 
-		HeleniumBrowserVersion 
-		HeleniumBrowserPlatform
+	HeleniumBrowser {
+		browserName :: HeleniumBrowserName,
+		browserVersion :: HeleniumBrowserVersion,
+		browserPlatform :: HeleniumBrowserPlatform
+	}
 
 data HeleniumBrowserName = Chrome | Firefox | HtmlUnit | IE | IPhone
 
