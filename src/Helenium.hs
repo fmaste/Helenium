@@ -290,6 +290,12 @@ clickElement :: String -> HeleniumM ()
 clickElement e = do
 	callSelenium $ Request True (Post "") $ "/element/" ++ e ++ "/click"
 	return ()
+
+submitElement :: String -> HeleniumM ()
+submitElement e = do
+	callSelenium $ Request True (Post "") $ "/element/" ++ e ++ "/submit"
+	return ()
+
 -------------------------------------------------------------------------------
 
 data Request = Request RequestStateful RequestMethod RequestPath
