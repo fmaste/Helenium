@@ -107,7 +107,7 @@ main = do
 	let reader = HeleniumReader {
 		debugHttp = True,
 		debugTime = False, -- TODO: Debug how long it takes to run the test.
-		screenshotPath = "/home/developer" -- TODO: Make it available.
+		screenshotPath = "/home/developer"
 	}
 	let state = HeleniumState {
 		serverHost = "http://127.0.0.1",
@@ -255,10 +255,20 @@ commandExecuteAsync s = do
 	return ()
 
 -- Take a screenshot of the current page.
-commandScreenshot :: String -> HeleniumM ()
-commandScreenshot _ = do
-	callSelenium $ Request True Get "/screenshot"
+takeScreenshot :: String -> HeleniumM ()
+takeScreenshot name = do
+	ans <- callSelenium $ Request True Get "/screenshot"
+	-- Returns the screenshot as a base64 encoded PNG.
+	case responseValue ans of
+		JSON.JSString jsString -> saveScreenshot name (JSON.fromJSString jsString)
+		_ -> throwError "Error reading screenshot answer."
 	return ()
+
+saveScreenshot :: String -> String -> HeleniumM ()
+saveScreenshot name png = do
+	reader <- ask
+	let path = screenshotPath reader
+	liftIO $ writeFile (path ++ "/" ++ name ++ ".png") png
 
 -- Change focus to another frame on the page.
 commandFrame :: String -> HeleniumM ()
