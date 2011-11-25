@@ -1,0 +1,9 @@
+# Use the newest Ubuntu version, 11.10
+
+sudo apt-get install haskell-platform
+cabal update
+cabal install json
+
+# Run the chromedriver server for your platform.
+# Just be sure to have Chrome installed in your platform default directory.
+
