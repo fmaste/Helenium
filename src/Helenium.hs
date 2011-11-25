@@ -124,13 +124,16 @@ main = do
 		],
 		serverSessionId = Nothing
 	}
-	runTest reader state test2
+	runTest reader state test1
 
 test :: HeleniumM ()
 test = do
 	goTo "http://www.google.com"
 	searchInput <- getElementById "lst-ib"
-	goTo "http://www.olx.com"
+	sendKeysToElement searchInput "google"
+	sleep 5
+	submitElement searchInput
+	--goTo "http://www.olx.com"
 	back
 	forward
 	refresh
