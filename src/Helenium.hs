@@ -279,6 +279,12 @@ getElementByCssSelector css = getElementBy "css selector" css
 
 getElementByXPath :: String -> HeleniumM String
 getElementByXPath x = getElementBy "xpath" x
+
+-- Get the element on the page that currently has focus.
+getActiveElement :: HeleniumM String
+getActiveElement = do
+	ans <- callSelenium $ Request True (Post "") "/element/active"
+	processElementResponse ans
 -------------------------------------------------------------------------------
 
 data Request = Request RequestStateful RequestMethod RequestPath
