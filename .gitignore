@@ -1,3 +1,4 @@
+chromedriver.log
 selenium*.jar
 .DS_Store
 *.swp
