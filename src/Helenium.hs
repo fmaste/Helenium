@@ -200,6 +200,12 @@ echo m = do
 	-- TODO: Add timestamp!!
 	tell [m]
 
+assertEq :: (Eq x, Show x) => x -> x -> HeleniumM ()
+assertEq a b = do
+	if a == b
+		then return ()
+		else throwError ("Not equal: " ++ show a ++ " with " ++ show b)
+
 -- Suspends the current thread for a given number of seconds.
 sleep :: Int -> HeleniumM ()
 sleep ms = do
