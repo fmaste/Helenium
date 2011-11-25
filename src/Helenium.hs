@@ -282,6 +282,14 @@ getElementByClassName className = getElementBy "class name" className
 getElementByCssSelector :: String -> HeleniumM String
 getElementByCssSelector css = getElementBy "css selector" css
 
+-- Returns an anchor element whose visible text matches the search value.
+getElementByText :: String -> HeleniumM String
+getElementByText text = getElementBy "link text" text
+
+-- Returns an anchor element whose visible text partially matches the search value.
+getElementByPartialText :: String -> HeleniumM String
+getElementByPartialText text = getElementBy "partial link text" text
+
 getElementByXPath :: String -> HeleniumM String
 getElementByXPath x = getElementBy "xpath" x
 
