@@ -32,7 +32,8 @@ type HeleniumError = String
 
 data HeleniumReader = 
 	HeleniumReader {
-		debugHttp :: Bool
+		debugHttp :: Bool,
+		debugTime :: Bool
 	}
 
 type HeleniumWriter = [String]
@@ -99,7 +100,8 @@ heleniumCapabilityKey NativeEvents = "nativeEvents"
 main :: IO ()
 main = do
 	let reader = HeleniumReader {
-		debugHttp = False
+		debugHttp = False,
+		debugTime = False -- TODO: Debug how long it takes to run the test.
 	}
 	let state = HeleniumState {
 		serverHost = "http://127.0.0.1",
