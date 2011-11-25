@@ -41,7 +41,10 @@ module Helenium (
 	getElementByXPath,
 	clickElement,
 	submitElement,
-	sendKeysToElement
+	sendKeysToElement,
+	setTimeoutAsyncScript
+	-- TODO: execute,
+	-- TODO: executeAsync,
 ) where
 
 -------------------------------------------------------------------------------
@@ -242,15 +245,6 @@ sleep ms = do
 	liftIO $ Sys.sleep ms
 	return ()
 
--- Set the amount of time, in milliseconds, that asynchronous scripts executed 
--- by /session/:sessionId/execute_async are permitted to run before they are 
--- aborted and a |Timeout| error is returned to the client.
-setTimeoutAsyncScript :: Int -> HeleniumM ()
-setTimeoutAsyncScript ms = do
-	let body = JSON.toJSObject [("ms", JSON.showJSON ms)]
-	callSelenium $ Request True (Post $ JSON.encode body) "/timeouts/async_script"
-	return ()
-
 -- Navigate to a new URL.
 goTo :: String -> HeleniumM ()
 goTo url = do
@@ -289,18 +283,6 @@ back = do
 forward :: HeleniumM ()
 forward = do
 	callSelenium $ Request True (Post "") "/forward"
-	return ()
-
--- Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
-commandExecute :: String -> HeleniumM ()
-commandExecute s = do
-	callSelenium $ Request True (Post s) "/execute"
-	return ()
-
--- Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
-commandExecuteAsync :: String -> HeleniumM ()
-commandExecuteAsync s = do
-	callSelenium $ Request True (Post s) "/execute_async"
 	return ()
 
 -- Take a screenshot of the current page.
@@ -408,6 +390,29 @@ sendKeysToElement e ks = do
 	let body = JSON.toJSObject [
                 ("value", JSON.JSArray $ map JSON.showJSON ks)]
 	callSelenium $ Request True (Post $ JSON.encode body) $ "/element/" ++ e ++ "/value"
+	return ()
+
+-- Set the amount of time, in milliseconds, that asynchronous scripts executed 
+-- by /session/:sessionId/execute_async are permitted to run before they are 
+-- aborted and a |Timeout| error is returned to the client.
+setTimeoutAsyncScript :: Int -> HeleniumM ()
+setTimeoutAsyncScript ms = do
+	let body = JSON.toJSObject [("ms", JSON.showJSON ms)]
+	callSelenium $ Request True (Post $ JSON.encode body) "/timeouts/async_script"
+	return ()
+
+-- TODO:
+-- Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
+execute :: String -> HeleniumM ()
+execute s = do
+	callSelenium $ Request True (Post s) "/execute"
+	return ()
+
+-- TODO:
+-- Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
+executeAsync :: String -> HeleniumM ()
+executeAsync s = do
+	callSelenium $ Request True (Post s) "/execute_async"
 	return ()
 
 -------------------------------------------------------------------------------
