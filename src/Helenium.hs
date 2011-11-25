@@ -107,7 +107,12 @@ main = do
 		serverPath = "",
 		serverBrowser = HeleniumBrowser Chrome "16" Linux,
 		serverCapabilities = [
-			JavascriptEnabled
+			JavascriptEnabled,
+			TakesScreenshot,
+			ApplicationCacheEnabled,
+			BrowserConnectionEnabled,
+			HandlesAlerts,
+			CssSelectorsEnabled
 		],
 		serverSessionId = Nothing
 	}
