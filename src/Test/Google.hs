@@ -5,9 +5,12 @@ import Helenium
 main :: IO ()
 main = do
 	let reader = HeleniumReader {
+		name = "Google",
+		logTime = True,
 		debugHttp = True,
 		debugTime = False, -- TODO: Debug how long it takes to run the test.
-		logTime = True,
+		timeoutTest = 0,
+		timeoutElement = 3000,
 		screenshotPath = "/home/developer"
 	}
 	let state = HeleniumState {

@@ -79,9 +79,12 @@ type HeleniumError = String
 
 data HeleniumReader = 
 	HeleniumReader {
+		name :: String,
+		logTime :: Bool,
 		debugHttp :: Bool,
 		debugTime :: Bool,
-		logTime :: Bool,
+		timeoutTest :: Int,
+		timeoutElement :: Int,
 		screenshotPath :: String
 	}
 
@@ -151,7 +154,14 @@ runTest r s t = do
 		Right _ -> putStrLn "Ok!"
 
 wrapTest :: HeleniumM () -> IO (HeleniumM ())
-wrapTest t = do return $ do {connect; t; disconnect} `catchError` (\e -> do {disconnect; throwError e})
+wrapTest t = do
+	return $ do
+		reader <- ask
+		tell ["Running test: " ++ (name reader)]
+		connect
+		setElementTimeout $ timeoutElement reader
+		(t `catchError` (\e -> do {disconnect; throwError e}))
+		disconnect
 
 -- Commands
 -------------------------------------------------------------------------------
@@ -177,6 +187,15 @@ connect = do
 			put $ state {serverSessionId = (Just sessId)}
 		_ -> throwError "Response has an invalid new session."
 	return () 
+
+-- Set the amount of time the driver should wait when searching for elements.
+-- When searching for an element, the driver should poll the page until the 
+-- element is found or the timeout expires, whichever occurs first.
+setElementTimeout :: Int -> HeleniumM ()
+setElementTimeout ms = do
+	let body = JSON.makeObj [("ms", JSON.showJSON ms)]
+	callSelenium $ Request True (Post $ JSON.encode body) "/timeouts/implicit_wait"
+	return ()
 
 -- Delete the session.
 disconnect :: HeleniumM ()
