@@ -22,6 +22,7 @@ module Helenium (
 	HeleniumBrowserPlatform (..),
 	HeleniumCapability (..),
 	runTest,
+	echo,
 	sleep,
 	goTo,
 	getUrl,
@@ -85,6 +86,7 @@ data HeleniumReader =
 	HeleniumReader {
 		debugHttp :: Bool,
 		debugTime :: Bool,
+		logTime :: Bool,
 		screenshotPath :: String
 	}
 
@@ -148,6 +150,7 @@ main = do
 	let reader = HeleniumReader {
 		debugHttp = True,
 		debugTime = False, -- TODO: Debug how long it takes to run the test.
+		logTime = True,
 		screenshotPath = "/home/developer"
 	}
 	let state = HeleniumState {
@@ -226,6 +229,11 @@ disconnect :: HeleniumM ()
 disconnect = do
 	callSelenium $ Request True Delete "/"
 	return ()
+
+echo :: String -> HeleniumM ()
+echo m = do
+	-- TODO: Add timestamp!!
+	tell [m]
 
 -- Suspends the current thread for a given number of seconds.
 sleep :: Int -> HeleniumM ()
