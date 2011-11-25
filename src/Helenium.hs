@@ -42,6 +42,8 @@ module Helenium (
 	clickElement,
 	submitElement,
 	sendKeysToElement,
+	deleteAllCookies,
+	deleteCookieByName,
 	setTimeoutAsyncScript
 	-- TODO: execute,
 	-- TODO: executeAsync,
@@ -330,6 +332,16 @@ sendKeysToElement e ks = do
 	let body = JSON.toJSObject [
                 ("value", JSON.JSArray $ map JSON.showJSON ks)]
 	callSelenium $ Request True (Post $ JSON.encode body) $ "/element/" ++ e ++ "/value"
+	return ()
+
+deleteAllCookies :: HeleniumM ()
+deleteAllCookies = do
+	callSelenium $ Request True Delete "/cookie"
+	return ()
+
+deleteCookieByName :: String -> HeleniumM ()
+deleteCookieByName name = do
+	callSelenium $ Request True Delete ("/cookie/" ++ name)
 	return ()
 
 -- Set the amount of time, in milliseconds, that asynchronous scripts executed 
