@@ -103,8 +103,11 @@ main = do
 		serverCapabilities = [JavascriptEnabled],
 		serverSessionId = Nothing
 	}
-	(eitherAns, state', writer) <- runHeleniumM test "" state
-	putStrLn (show eitherAns)
+	(eitherAns, state', writer) <- runHeleniumM test2 "" state
+	case eitherAns of
+		Left err -> putStrLn $ "An error ocurred: " ++ err
+		Right _ -> putStrLn "OK!!!!!"
+	return ()
 
 test :: HeleniumM ()
 test = do
