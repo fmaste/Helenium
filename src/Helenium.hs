@@ -322,6 +322,13 @@ submitElement e = do
 	callSelenium $ Request True (Post "") $ "/element/" ++ e ++ "/submit"
 	return ()
 
+sendKeysToElement :: String -> [Char] -> HeleniumM ()
+sendKeysToElement e ks = do
+	let body = JSON.toJSObject [
+                ("value", JSON.JSArray $ map JSON.showJSON ks)]
+	callSelenium $ Request True (Post $ JSON.encode body) $ "/element/" ++ e ++ "/value"
+	return ()
+
 -------------------------------------------------------------------------------
 
 data Request = Request RequestStateful RequestMethod RequestPath
