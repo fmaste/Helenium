@@ -109,15 +109,17 @@ main = do
 		serverCapabilities = [JavascriptEnabled],
 		serverSessionId = Nothing
 	}
-	(eitherAns, state', writer) <- runHeleniumM test2 reader state
+	runTest reader state test2
+
+runTest :: HeleniumReader -> HeleniumState -> (HeleniumM ()) -> IO ()
+runTest r s t = do
+	(eitherAns, s', w) <- runHeleniumM (connect >> t >> disconnect) r s
 	case eitherAns of
 		Left err -> putStrLn $ "An error ocurred: " ++ err
 		Right _ -> putStrLn "OK!!!!!"
-	return ()
 
 test :: HeleniumM ()
 test = do
-	connect
 	goTo "http://www.google.com"
 	searchInput <- getElementById "lst-ib"
 	goTo "http://www.olx.com"
@@ -126,7 +128,6 @@ test = do
 	refresh
 	url <- getUrl
 	title <- getTitle
-	disconnect
 	return ()
 
 -- Commands
