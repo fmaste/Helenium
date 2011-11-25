@@ -23,6 +23,7 @@ module Helenium (
 	HeleniumCapability (..),
 	runTest,
 	echo,
+	assertEq,
 	sleep,
 	goTo,
 	getUrl,
