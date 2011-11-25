@@ -264,24 +264,6 @@ saveScreenshot name png = do
 		then return ()
 		else throwError $ "Error saving screenshot: " ++ (show err)
 
--- Change focus to another frame on the page.
-commandFrame :: String -> HeleniumM ()
-commandFrame s = do
-	callSelenium $ Request True (Post s) "/frame"
-	return ()
-
--- Change focus to another window.
-commandWindowFocus :: String -> HeleniumM ()
-commandWindowFocus s = do
-	callSelenium $ Request True (Post s) "/window"
-	return ()
-
--- Close the current window.
-commandWindowClose :: String -> HeleniumM ()
-commandWindowClose _ = do
-	callSelenium $ Request True Delete "/window"
-	return ()
-
 -- Get the element on the page that currently has focus.
 getActiveElement :: HeleniumM String
 getActiveElement = do
