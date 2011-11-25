@@ -273,6 +273,9 @@ processElementResponse ans = do
 getElementById :: String -> HeleniumM String
 getElementById id = getElementBy "id" id
 
+getElementByName :: String -> HeleniumM String
+getElementByName name = getElementBy "name" name
+
 getElementByClassName :: String -> HeleniumM String
 getElementByClassName className = getElementBy "class name" className
 
