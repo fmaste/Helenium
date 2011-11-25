@@ -192,6 +192,7 @@ runTest :: HeleniumReader -> HeleniumState -> HeleniumM () -> IO ()
 runTest r s t = do
 	t' <- wrapTest t
 	(eitherAns, s', w) <- runHeleniumM t' r s
+	mapM (\m -> putStrLn m) w
 	case eitherAns of
 		Left err -> putStrLn $ "An error ocurred: " ++ err
 		Right _ -> putStrLn "Ok!"
