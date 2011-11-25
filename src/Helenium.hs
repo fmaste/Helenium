@@ -107,7 +107,7 @@ main = do
 	let reader = HeleniumReader {
 		debugHttp = True,
 		debugTime = False, -- TODO: Debug how long it takes to run the test.
-		screenshotPath = "/home/developer", -- TODO: Make it available.
+		screenshotPath = "/home/developer" -- TODO: Make it available.
 	}
 	let state = HeleniumState {
 		serverHost = "http://127.0.0.1",
