@@ -286,11 +286,14 @@ getActiveElement = do
 	ans <- callSelenium $ Request True (Post "") "/element/active"
 	processElementResponse ans
 
+-- Click on an element.
 clickElement :: String -> HeleniumM ()
 clickElement e = do
 	callSelenium $ Request True (Post "") $ "/element/" ++ e ++ "/click"
 	return ()
 
+-- Submit a FORM element. The submit command may also be applied to any element 
+-- that is a descendant of a FORM element.
 submitElement :: String -> HeleniumM ()
 submitElement e = do
 	callSelenium $ Request True (Post "") $ "/element/" ++ e ++ "/submit"
