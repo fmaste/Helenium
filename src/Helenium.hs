@@ -150,16 +150,17 @@ wrapTest t = do return $ do {connect; t; disconnect} `catchError` (\e -> do {dis
 -------------------------------------------------------------------------------
 
 -- Create a new session.
--- TODO: Add desiredCapabilities JSON object
 connect :: HeleniumM ()
 connect = do
 	state <- get
 	let browser = serverBrowser state
 	let capabilities = serverCapabilities state
-	ans <- callSelenium $ Request 
-		False 
-		(Post "{\"desiredCapabilities\": {\"javascriptEnabled\": true}}") 
-		"/session"
+	let capabilitiesArray = map 
+		(\c -> (heleniumCapabilityKey c, JSON.JSBool True)) 
+		capabilities
+	let capabilitiesJson = JSON.makeObj capabilitiesArray
+	let bodyJson = JSON.makeObj [("desiredCapabilities", capabilitiesJson)]
+	ans <- callSelenium $ Request False (Post $ JSON.encode bodyJson) "/session"
 	-- Response is: {"status":303,"value":"/session/f3ae93822f855f545dbdab66cc556453"}
 	let json = responseValue ans
 	case json of
@@ -167,7 +168,7 @@ connect = do
 			let sessString = JSON.fromJSString jsString 
 			let sessId = drop (length "/session/") sessString
 			put $ state {serverSessionId = (Just sessId)}
-		_ -> throwError "Not a valid new session answer."
+		_ -> throwError "Response has an invalid new session."
 	return () 
 
 -- Delete the session.
