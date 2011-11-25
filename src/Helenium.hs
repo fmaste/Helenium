@@ -12,6 +12,7 @@ import qualified Network.URI as URI
 import qualified Network.HTTP as HTTP
 import qualified Network.HTTP.Stream as Stream
 import qualified Text.JSON as JSON
+import qualified System.Posix.Unistd as Sys
 
 -------------------------------------------------------------------------------
 
@@ -147,6 +148,12 @@ connect = do
 disconnect :: HeleniumM ()
 disconnect = do
 	callSelenium $ Request True Delete "/"
+	return ()
+
+-- Suspends the current thread for a given number of seconds.
+sleep :: Int -> HeleniumM ()
+sleep ms = do
+	liftIO $ Sys.sleep ms
 	return ()
 
 -- Set the amount of time, in milliseconds, that asynchronous scripts executed 
