@@ -109,11 +109,13 @@ test :: HeleniumM ()
 test = do
 	connect
 	goTo "http://www.google.com"
+	searchInput <- getElementById "lst-ib"
 	goTo "http://www.olx.com"
 	back
 	forward
 	refresh
 	url <- getUrl
+	title <- getTitle
 	disconnect
 	return ()
 
@@ -241,6 +243,35 @@ commandWindowClose :: String -> HeleniumM ()
 commandWindowClose _ = do
 	callSelenium $ Request True Delete "/window"
 	return ()
+
+getTitle :: HeleniumM String
+getTitle = do
+	ans <- callSelenium $ Request True Get "/title"
+	case responseValue ans of
+		JSON.JSString jsString -> return $ JSON.fromJSString jsString
+		_ -> throwError "Error reading title"	
+
+getElementBy :: String -> String -> HeleniumM String
+getElementBy using value = do
+	let body = JSON.toJSObject [
+		("using", JSON.toJSString using),
+		("value", JSON.toJSString value)]
+	-- Return {"ELEMENT":":wdc:1322198176445"}
+	ans <- callSelenium $ Request True (Post $ JSON.encode body) "/element"
+	case responseValue ans of
+		(JSON.JSObject obj) -> case JSON.valFromObj "ELEMENT" obj of
+			JSON.Ok (JSON.JSString element) -> return $ JSON.fromJSString element
+			_ -> throwError "Error reading element"
+		_ -> throwError "Error reading element"
+
+getElementById :: String -> HeleniumM String
+getElementById id = getElementBy "id" id
+
+getElementByClassName :: String -> HeleniumM String
+getElementByClassName className = getElementBy "class name" className
+
+getElementByCssSelector :: String -> HeleniumM String
+getElementByCssSelector css = getElementBy "css selector" css
 
 -------------------------------------------------------------------------------
 
