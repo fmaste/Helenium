@@ -118,12 +118,16 @@ main = do
 	}
 	runTest reader state test2
 
-runTest :: HeleniumReader -> HeleniumState -> (HeleniumM ()) -> IO ()
+runTest :: HeleniumReader -> HeleniumState -> HeleniumM () -> IO ()
 runTest r s t = do
-	(eitherAns, s', w) <- runHeleniumM (connect >> t >> disconnect) r s
+	t' <- wrapTest t
+	(eitherAns, s', w) <- runHeleniumM t' r s
 	case eitherAns of
 		Left err -> putStrLn $ "An error ocurred: " ++ err
-		Right _ -> putStrLn "OK!!!!!"
+		Right _ -> putStrLn "Ok!"
+
+wrapTest :: HeleniumM () -> IO (HeleniumM ())
+wrapTest t = do return $ do {connect; t; disconnect} `catchError` (\e -> do {disconnect; throwError e})
 
 test :: HeleniumM ()
 test = do
