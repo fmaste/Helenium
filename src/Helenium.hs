@@ -28,6 +28,16 @@ runHeleniumM ::
 	IO (Either HeleniumError a, HeleniumState, HeleniumWriter)
 runHeleniumM hm r s = runRWST (runErrorT hm) r s
 
+{- 
+Hint:
+:t runHeleniumT
+    runHeleniumT :: HeleniumT e r w s m a -> ErrorT e (RWST r w s m) a
+:t runErrorT . runHeleniumT
+    runErrorT . runHeleniumT :: HeleniumT e r w s m a -> RWST r w s m (Either e a)
+:t runRWST . runErrorT . runHeleniumT
+    runRWST . runErrorT . runHeleniumT :: HeleniumT e r w s m a -> r -> s -> m (Either e a, s, w)
+-}
+
 type HeleniumError = String
 
 data HeleniumReader = 
@@ -88,13 +98,6 @@ heleniumCapabilityKey WebStorageEnabled = "webStorageEnabled"
 heleniumCapabilityKey Rotatable = "rotatable"
 heleniumCapabilityKey AcceptSslCerts = "acceptSslCerts"
 heleniumCapabilityKey NativeEvents = "nativeEvents"
-
--- :t runHeleniumT
--- runHeleniumT :: HeleniumT e r w s m a -> ErrorT e (RWST r w s m) a
--- :t runErrorT . runHeleniumT
--- runErrorT . runHeleniumT :: HeleniumT e r w s m a -> RWST r w s m (Either e a)
--- :t runRWST . runErrorT . runHeleniumT
--- runRWST . runErrorT . runHeleniumT :: HeleniumT e r w s m a -> r -> s -> m (Either e a, s, w)
 
 -------------------------------------------------------------------------------
 
