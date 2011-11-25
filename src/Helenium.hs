@@ -251,18 +251,6 @@ setTimeoutAsyncScript ms = do
 	callSelenium $ Request True (Post $ JSON.encode body) "/timeouts/async_script"
 	return ()
 
--- Retrieve the current window handle.
-commandWindowHandle :: String -> HeleniumM ()
-commandWindowHandle _ = do
-	callSelenium $ Request True Get "/window_handle"
-	return ()
-
--- Retrieve the list of all window handles available to the session.
-commandWindowHandles :: String -> HeleniumM ()
-commandWindowHandles _ = do
-	callSelenium $ Request True Get "/window_handles"
-	return ()
-
 -- Navigate to a new URL.
 goTo :: String -> HeleniumM ()
 goTo url = do
