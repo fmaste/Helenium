@@ -32,7 +32,7 @@ type HeleniumError = String
 
 type HeleniumReader = String
 
-type HeleniumWriter = String
+type HeleniumWriter = [String]
 
 data HeleniumState = 
 	HeleniumState {
