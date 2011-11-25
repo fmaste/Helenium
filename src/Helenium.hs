@@ -98,6 +98,9 @@ heleniumCapabilityKey NativeEvents = "nativeEvents"
 
 main :: IO ()
 main = do
+	let reader = HeleniumReader {
+		debugHttp = False
+	}
 	let state = HeleniumState {
 		serverHost = "http://127.0.0.1",
 		serverPort = 9515,
@@ -106,7 +109,7 @@ main = do
 		serverCapabilities = [JavascriptEnabled],
 		serverSessionId = Nothing
 	}
-	(eitherAns, state', writer) <- runHeleniumM test2 "" state
+	(eitherAns, state', writer) <- runHeleniumM test2 reader state
 	case eitherAns of
 		Left err -> putStrLn $ "An error ocurred: " ++ err
 		Right _ -> putStrLn "OK!!!!!"
@@ -359,7 +362,16 @@ type ResponseValue = JSON.JSValue
 callSelenium :: Request -> HeleniumM Response
 callSelenium req = do
 	httpReq <- makeRequest req
+	reader <- ask
+	when (debugHttp reader) $ 
+		liftIO $ 
+			putStr (show httpReq) >>
+			putStrLn (HTTP.rqBody httpReq)
 	httpRes <- sendRequest httpReq
+	when (debugHttp reader) $
+		liftIO $
+			putStr (show httpRes) >>
+			putStrLn (HTTP.rspBody httpRes)
 	processResponse httpRes
 
 sendRequest :: HTTP.Request String -> HeleniumM (HTTP.Response String)
