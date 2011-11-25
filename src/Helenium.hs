@@ -106,7 +106,9 @@ main = do
 		serverPort = 9515,
 		serverPath = "",
 		serverBrowser = HeleniumBrowser Chrome "16" Linux,
-		serverCapabilities = [JavascriptEnabled],
+		serverCapabilities = [
+			JavascriptEnabled
+		],
 		serverSessionId = Nothing
 	}
 	runTest reader state test2
