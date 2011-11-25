@@ -251,6 +251,8 @@ getTitle = do
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
 		_ -> throwError "Error reading title"	
 
+-- Search for an element on the page, starting from the document root.
+-- Each locator must return the first matching element located in the DOM.
 getElementBy :: String -> String -> HeleniumM String
 getElementBy using value = do
 	let body = JSON.toJSObject [
