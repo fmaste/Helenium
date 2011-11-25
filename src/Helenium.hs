@@ -40,6 +40,7 @@ module Helenium (
 	getElementByPartialText,
 	getElementByXPath,
 	clickElement,
+	getElementText,
 	submitElement,
 	sendKeysToElement,
 	deleteAllCookies,
@@ -319,6 +320,13 @@ clickElement :: String -> HeleniumM ()
 clickElement e = do
 	callSelenium $ Request True (Post "") $ "/element/" ++ e ++ "/click"
 	return ()
+
+getElementText :: String -> HeleniumM String
+getElementText e = do
+	ans <- callSelenium $ Request True Get ("/element/" ++ e ++ "/text")
+	case responseValue ans of
+		JSON.JSString jsString -> return $ JSON.fromJSString jsString
+		_ -> throwError "Error reading element text answer."
 
 -- Submit a FORM element. The submit command may also be applied to any element 
 -- that is a descendant of a FORM element.
