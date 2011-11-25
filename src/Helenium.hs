@@ -268,7 +268,12 @@ saveScreenshot :: String -> String -> HeleniumM ()
 saveScreenshot name png = do
 	reader <- ask
 	let path = screenshotPath reader
-	liftIO $ writeFile (path ++ "/" ++ name ++ ".png") png
+	err <- liftIO $ catch 
+		(writeFile (path ++ "/" ++ name ++ ".png") png >> return "")
+		(\err -> return $ show err)
+	if null err
+		then return ()
+		else throwError $ "Error saving screenshot: " ++ (show err)
 
 -- Change focus to another frame on the page.
 commandFrame :: String -> HeleniumM ()
