@@ -285,6 +285,11 @@ getActiveElement :: HeleniumM String
 getActiveElement = do
 	ans <- callSelenium $ Request True (Post "") "/element/active"
 	processElementResponse ans
+
+clickElement :: String -> HeleniumM ()
+clickElement e = do
+	callSelenium $ Request True (Post "") $ "/element/" ++ e ++ "/click"
+	return ()
 -------------------------------------------------------------------------------
 
 data Request = Request RequestStateful RequestMethod RequestPath
