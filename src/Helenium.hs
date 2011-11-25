@@ -1,5 +1,46 @@
 module Helenium (
-	HeleniumM
+	HeleniumM,
+	HeleniumError,
+	HeleniumReader (..),
+		--debugHttp,
+		--debugTime,
+		--screenshotPath,
+	HeleniumWriter,
+	HeleniumState (..),
+		--serverHost,
+		--serverPort,
+		--serverPath,
+		--serverBrowser,
+		--serverCapabilities,
+		--serverSessionId,
+	HeleniumBrowser (..),
+		--browserName,
+		--browserVersion,
+		--browserPlatform,
+	HeleniumBrowserName,
+	HeleniumBrowserVersion,
+	HeleniumBrowserPlatform,
+	HeleniumCapability (..),
+	runTest,
+	sleep,
+	goTo,
+	getUrl,
+	getTitle,
+	refresh,
+	back,
+	forward,
+	takeScreenshot,
+	getActiveElement,
+	getElementById,
+	getElementByName,
+	getElementByClassName,
+	getElementByCssSelector,
+	getElementByText,
+	getElementByPartialText,
+	getElementByXPath,
+	clickElement,
+	submitElement,
+	sendKeysToElement
 ) where
 
 -------------------------------------------------------------------------------
@@ -124,7 +165,7 @@ main = do
 		],
 		serverSessionId = Nothing
 	}
-	runTest reader state test1
+	runTest reader state test
 
 test :: HeleniumM ()
 test = do
@@ -213,6 +254,13 @@ commandWindowHandles _ = do
 	callSelenium $ Request True Get "/window_handles"
 	return ()
 
+-- Navigate to a new URL.
+goTo :: String -> HeleniumM ()
+goTo url = do
+	let body = JSON.toJSObject [("url", JSON.toJSString url)]
+	callSelenium $ Request True (Post $ JSON.encode body) "/url"
+	return ()
+
 -- Retrieve the URL of the current page.
 getUrl :: HeleniumM String
 getUrl = do
@@ -221,17 +269,17 @@ getUrl = do
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
 		_ -> throwError "Error reading url"
 
--- Navigate to a new URL.
-goTo :: String -> HeleniumM ()
-goTo url = do
-	let body = JSON.toJSObject [("url", JSON.toJSString url)]
-	callSelenium $ Request True (Post $ JSON.encode body) "/url"
-	return ()
+getTitle :: HeleniumM String
+getTitle = do
+	ans <- callSelenium $ Request True Get "/title"
+	case responseValue ans of
+		JSON.JSString jsString -> return $ JSON.fromJSString jsString
+		_ -> throwError "Error reading title"
 
--- Navigate forwards in the browser history, if possible.
-forward :: HeleniumM ()
-forward = do
-	callSelenium $ Request True (Post "") "/forward"
+-- Refresh the current page.
+refresh :: HeleniumM ()
+refresh = do
+	callSelenium $ Request True (Post "") "/refresh"
 	return ()
 
 -- Navigate backwards in the browser history, if possible.
@@ -240,10 +288,10 @@ back = do
 	callSelenium $ Request True (Post "") "/back"
 	return ()
 
--- Refresh the current page.
-refresh :: HeleniumM ()
-refresh = do
-	callSelenium $ Request True (Post "") "/refresh"
+-- Navigate forwards in the browser history, if possible.
+forward :: HeleniumM ()
+forward = do
+	callSelenium $ Request True (Post "") "/forward"
 	return ()
 
 -- Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
@@ -297,12 +345,11 @@ commandWindowClose _ = do
 	callSelenium $ Request True Delete "/window"
 	return ()
 
-getTitle :: HeleniumM String
-getTitle = do
-	ans <- callSelenium $ Request True Get "/title"
-	case responseValue ans of
-		JSON.JSString jsString -> return $ JSON.fromJSString jsString
-		_ -> throwError "Error reading title"	
+-- Get the element on the page that currently has focus.
+getActiveElement :: HeleniumM String
+getActiveElement = do
+	ans <- callSelenium $ Request True (Post "") "/element/active"
+	processElementResponse ans
 
 -- Search for an element on the page, starting from the document root.
 -- Each locator must return the first matching element located in the DOM.
@@ -345,12 +392,6 @@ getElementByPartialText text = getElementBy "partial link text" text
 
 getElementByXPath :: String -> HeleniumM String
 getElementByXPath x = getElementBy "xpath" x
-
--- Get the element on the page that currently has focus.
-getActiveElement :: HeleniumM String
-getActiveElement = do
-	ans <- callSelenium $ Request True (Post "") "/element/active"
-	processElementResponse ans
 
 -- Click on an element.
 clickElement :: String -> HeleniumM ()
