@@ -192,12 +192,6 @@ commandTimeoutsSetAsyncScript s = do
 	callSelenium $ Request True (Post s) "/timeouts/async_script"
 	return ()
 
--- Set the amount of time the driver should wait when searching for elements.
-commandTimeoutsSetImplicitWait :: String -> HeleniumM ()
-commandTimeoutsSetImplicitWait s = do
-	callSelenium $ Request True (Post s) "/timeouts/implicit_wait"
-	return ()
-
 -- Retrieve the current window handle.
 commandWindowHandle :: String -> HeleniumM ()
 commandWindowHandle _ = do
