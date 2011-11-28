@@ -109,6 +109,12 @@ data HeleniumBrowser =
 
 data HeleniumBrowserName = Chrome | Firefox | HtmlUnit | IE | IPhone
 
+heleniumBrowserNameKey Chrome = "chrome"
+heleniumBrowserNameKey Firefox = "firefox"
+heleniumBrowserNameKey HtmlUnit = "htmlunit"
+heleniumBrowserNameKey IE = "internet explorer"
+heleniumBrowserNameKey IPhone = "iphone"
+
 type HeleniumBrowserVersion = String
 
 data HeleniumBrowserPlatform = Windows| XP | Vista | Mac | Linux | Unix
@@ -170,12 +176,13 @@ wrapTest t = do
 connect :: HeleniumM ()
 connect = do
 	state <- get
-	let browser = serverBrowser state
+	let browser = heleniumBrowserNameKey $ browserName $ serverBrowser state
 	let capabilities = serverCapabilities state
 	let capabilitiesArray = map 
 		(\c -> (heleniumCapabilityKey c, JSON.JSBool True)) 
 		capabilities
-	let capabilitiesJson = JSON.makeObj capabilitiesArray
+	let capabilitiesArray' = capabilitiesArray ++ [("browserName", JSON.showJSON browser)]
+	let capabilitiesJson = JSON.makeObj capabilitiesArray'
 	let bodyJson = JSON.makeObj [("desiredCapabilities", capabilitiesJson)]
 	ans <- callSelenium $ Request False (Post $ JSON.encode bodyJson) "/session"
 	-- Response is: {"status":303,"value":"/session/f3ae93822f855f545dbdab66cc556453"}
