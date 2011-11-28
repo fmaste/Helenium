@@ -117,7 +117,7 @@ heleniumBrowserNameKey IPhone = "iphone"
 
 type HeleniumBrowserVersion = String
 
-data HeleniumBrowserPlatform = Windows| XP | Vista | Mac | Linux | Unix
+data HeleniumBrowserPlatform = Windows| XP | Vista | Mac | Linux | Unix | Any
 
 data HeleniumCapability =
 	JavascriptEnabled |
