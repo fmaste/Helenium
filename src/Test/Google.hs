@@ -15,9 +15,9 @@ main = do
 	}
 	let state = HeleniumState {
 		serverHost = "http://127.0.0.1",
-		serverPort = 9515,
-		serverPath = "",
-		serverBrowser = HeleniumBrowser Chrome "16" Linux,
+		serverPort = 4444,
+		serverPath = "/wd/hub",
+		serverBrowser = HeleniumBrowser Firefox "16" Linux,
 		serverCapabilities = [
 			JavascriptEnabled,
 			TakesScreenshot,
