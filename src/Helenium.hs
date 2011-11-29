@@ -109,12 +109,6 @@ data HeleniumBrowser =
 
 data HeleniumBrowserName = Chrome | Firefox | HtmlUnit | IE | IPhone
 
-heleniumBrowserNameKey Chrome = "chrome"
-heleniumBrowserNameKey Firefox = "firefox"
-heleniumBrowserNameKey HtmlUnit = "htmlunit"
-heleniumBrowserNameKey IE = "internet explorer"
-heleniumBrowserNameKey IPhone = "iphone"
-
 type HeleniumBrowserVersion = String
 
 data HeleniumBrowserPlatform = Windows| XP | Vista | Mac | Linux | Unix | Any
@@ -132,20 +126,6 @@ data HeleniumCapability =
 	Rotatable |
 	AcceptSslCerts |
 	NativeEvents
-
-heleniumCapabilityKey :: HeleniumCapability -> String
-heleniumCapabilityKey JavascriptEnabled = "javascriptEnabled"
-heleniumCapabilityKey TakesScreenshot = "takesScreenshot"
-heleniumCapabilityKey HandlesAlerts = "handlesAlerts"
-heleniumCapabilityKey DatabaseEnabled = "databaseEnabled"
-heleniumCapabilityKey LocationContextEnabled = "locationContextEnabled"
-heleniumCapabilityKey ApplicationCacheEnabled = "applicationCacheEnabled"
-heleniumCapabilityKey BrowserConnectionEnabled = "browserConnectionEnabled"
-heleniumCapabilityKey CssSelectorsEnabled = "cssSelectorsEnabled"
-heleniumCapabilityKey WebStorageEnabled = "webStorageEnabled"
-heleniumCapabilityKey Rotatable = "rotatable"
-heleniumCapabilityKey AcceptSslCerts = "acceptSslCerts"
-heleniumCapabilityKey NativeEvents = "nativeEvents"
 
 -- Test runner.
 -------------------------------------------------------------------------------
@@ -201,6 +181,25 @@ processResponseBodyJson body = do
 	-- TODO: Return status
 	return (0, value)
 
+heleniumBrowserNameKey Chrome = "chrome"
+heleniumBrowserNameKey Firefox = "firefox"
+heleniumBrowserNameKey HtmlUnit = "htmlunit"
+heleniumBrowserNameKey IE = "internet explorer"
+heleniumBrowserNameKey IPhone = "iphone"
+
+heleniumCapabilityKey :: HeleniumCapability -> String
+heleniumCapabilityKey JavascriptEnabled = "javascriptEnabled"
+heleniumCapabilityKey TakesScreenshot = "takesScreenshot"
+heleniumCapabilityKey HandlesAlerts = "handlesAlerts"
+heleniumCapabilityKey DatabaseEnabled = "databaseEnabled"
+heleniumCapabilityKey LocationContextEnabled = "locationContextEnabled"
+heleniumCapabilityKey ApplicationCacheEnabled = "applicationCacheEnabled"
+heleniumCapabilityKey BrowserConnectionEnabled = "browserConnectionEnabled"
+heleniumCapabilityKey CssSelectorsEnabled = "cssSelectorsEnabled"
+heleniumCapabilityKey WebStorageEnabled = "webStorageEnabled"
+heleniumCapabilityKey Rotatable = "rotatable"
+heleniumCapabilityKey AcceptSslCerts = "acceptSslCerts"
+heleniumCapabilityKey NativeEvents = "nativeEvents"
 -- Create a new session.
 connect :: HeleniumM ()
 connect = do
