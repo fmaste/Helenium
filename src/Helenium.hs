@@ -299,11 +299,11 @@ forward = do
 	return ()
 
 -- Take a screenshot of the current page.
+-- Returns the screenshot as a base64 encoded PNG.
 takeScreenshot :: String -> HeleniumM ()
 takeScreenshot name = do
 	ans <- callSelenium $ Request True Get "/screenshot"
 	(status, value) <- processResponseBody $ responseHTTPBody ans
-	-- Returns the screenshot as a base64 encoded PNG.
 	case value of
 		JSON.JSString jsString -> saveScreenshot name (JSON.fromJSString jsString)
 		_ -> throwError "Error reading screenshot answer."
