@@ -157,7 +157,7 @@ runTest r s t = do
 	mapM (\m -> putStrLn m) w
 	case eitherAns of
 		Left err -> putStrLn $ "An error ocurred: " ++ err
-		Right _ -> putStrLn "Ok!"
+		Right _ -> putStrLn "Test finished successfully!"
 
 wrapTest :: HeleniumM () -> IO (HeleniumM ())
 wrapTest t = do
