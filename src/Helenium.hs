@@ -186,7 +186,7 @@ processResponseBodyJson body = do
 	statusJson <- JSON.valFromObj "status" json
 	status <- case JSON.readJSON statusJson of
 		JSON.Ok (JSON.JSRational False e) -> return $ fromEnum e
-		_ -> throwError "Error parsing JSON reponse: Invalid status."
+		_ -> throwError "Error parsing JSON reponse: Invalid status property."
 	value <- JSON.valFromObj "value" json
 	return (status, value)
 
@@ -627,7 +627,8 @@ data ErrorCode =
 	InvalidElementCoordinates | 
 	IMENotAvailable | 
 	IMEEngineActivationFailed | 
-	InvalidSelector
+	InvalidSelector |
+	UnknownErrorNumber
 
 errorNumberToErrorCode :: Integer -> ErrorCode
 errorNumberToErrorCode 0 = Success
@@ -652,6 +653,7 @@ errorNumberToErrorCode 29 = InvalidElementCoordinates
 errorNumberToErrorCode 30 = IMENotAvailable
 errorNumberToErrorCode 31 = IMEEngineActivationFailed
 errorNumberToErrorCode 32 = InvalidSelector
+errorNumberToErrorCode _  = UnknownErrorNumber
 
 errorCodeToErrorMessage :: ErrorCode -> String
 errorCodeToErrorMessage Success = "The command executed successfully."
