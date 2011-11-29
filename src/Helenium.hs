@@ -160,9 +160,7 @@ runTest r s t = do
 		Right _ -> showOk
 
 showLog :: HeleniumWriter -> IO ()
-showLog w = do
-	mapM (\m -> putStrLn m) w
-	return ()
+showLog w = mapM_ (\m -> putStrLn m) w
 
 showOk :: IO ()
 showOk = putStrLn "Test finished successfully!"
