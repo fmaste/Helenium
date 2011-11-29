@@ -11,8 +11,8 @@ module Helenium (
 	HeleniumCapability (..),
 	runTest,
 	echo,
-	assertEq,
 	sleep,
+	assertEq,
 	goTo,
 	getUrl,
 	getTitle,
@@ -166,6 +166,23 @@ wrapTest t = do
 -- Commands
 -------------------------------------------------------------------------------
 
+echo :: String -> HeleniumM ()
+echo m = do
+	-- TODO: Add timestamp!!
+	tell [m]
+
+-- Suspends the current thread for a given number of seconds.
+sleep :: Int -> HeleniumM ()
+sleep ms = do
+	liftIO $ Sys.sleep ms
+	return ()
+
+assertEq :: (Eq x, Show x) => x -> x -> HeleniumM ()
+assertEq a b = do
+	if a == b
+		then return ()
+		else throwError ("Not equal: " ++ show a ++ " with " ++ show b)
+
 type ResponseStatus = Int
 
 type ResponseValue = JSON.JSValue
@@ -247,23 +264,6 @@ setElementTimeout ms = do
 disconnect :: HeleniumM ()
 disconnect = do
 	callSelenium $ Request True Delete "/"
-	return ()
-
-echo :: String -> HeleniumM ()
-echo m = do
-	-- TODO: Add timestamp!!
-	tell [m]
-
-assertEq :: (Eq x, Show x) => x -> x -> HeleniumM ()
-assertEq a b = do
-	if a == b
-		then return ()
-		else throwError ("Not equal: " ++ show a ++ " with " ++ show b)
-
--- Suspends the current thread for a given number of seconds.
-sleep :: Int -> HeleniumM ()
-sleep ms = do
-	liftIO $ Sys.sleep ms
 	return ()
 
 -- Navigate to a new URL.
