@@ -23,11 +23,11 @@ main = do
 			ApplicationCacheEnabled,
 			BrowserConnectionEnabled,
 			HandlesAlerts,
-			CssSelectorsEnabled
-                ],
-                serverSessionId = Nothing
-        }
-        runTest config state test
+			cssSelectorsEnabled
+		],
+		serverSessionId = Nothing
+	}
+	runTest config state test)
 
 test = do
 	goTo "http://www.aaa.com"
