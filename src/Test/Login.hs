@@ -75,12 +75,12 @@ assertProfile = do
 	echo "Assert the profile title."
 	profileTitleElement <- getElementByXPath "//div[@id='item-top']//p[@id='olx_item_title']"
 	profileTitleText <- getElementText profileTitleElement
-	assertEq profileTitleText "fmaste's Profile"
+	assertEqual profileTitleText "fmaste's Profile"
 
 assertCookieLogin = do
 	echo "Test if the login cookie exists."
 	cookieValue <- getCookieValue "login"
-	assertEq cookieValue "1"
+	assertEqual cookieValue "1"
 
 assertCookieLogout = do
 	echo "Test if the login cookie does not exists."

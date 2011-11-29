@@ -12,7 +12,11 @@ module Helenium (
 	runTest,
 	echo,
 	sleep,
-	assertEq,
+	assertEqual,
+	assertLess,
+	assertGreater,
+	assertLessOrEqual,
+	assertGreaterOrEqual,
 	goTo,
 	getUrl,
 	getTitle,
@@ -181,11 +185,26 @@ sleep ms = do
 	liftIO $ Sys.sleep ms
 	return ()
 
-assertEq :: (Eq x, Show x) => x -> x -> HeleniumM ()
-assertEq a b = do
-	if a == b
+assert :: Show x => String -> (x -> x -> Bool) -> x -> x -> HeleniumM ()
+assert p f a b =
+	if f a b
 		then return ()
-		else throwError ("Not equal: " ++ show a ++ " with " ++ show b)
+		else throwError ("Not " ++ p ++ ": " ++ show a ++ " with " ++ show b)
+
+assertEqual :: (Eq x, Show x) => x -> x -> HeleniumM ()
+assertEqual a b = assert "equal" (==) a b
+
+assertLess :: (Ord x, Show x) => x -> x -> HeleniumM ()
+assertLess a b = assert "less" (<) a b
+
+assertGreater :: (Ord x, Show x) => x -> x -> HeleniumM ()
+assertGreater a b = assert "greater" (>) a b
+
+assertLessOrEqual :: (Ord x, Show x) => x -> x -> HeleniumM ()
+assertLessOrEqual a b = assert "less" (<) a b
+
+assertGreaterOrEqual :: (Ord x, Show x) => x -> x -> HeleniumM ()
+assertGreaterOrEqual a b = assert "greater" (>) a b
 
 type ResponseStatus = Int
 
