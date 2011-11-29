@@ -231,7 +231,7 @@ connect = do
 		Just location -> do
 			let sessId = reverse $ takeWhile (/= '/') $ reverse location
 			put $ state {serverSessionId = (Just sessId)}
-		Nothing -> throwError "Response has an invalid new session."
+		Nothing -> throwError "Response has no Location header with the new session."
 	return () 
 
 -- Set the amount of time the driver should wait when searching for elements.
@@ -280,7 +280,7 @@ getUrl = do
 	(status, value) <- processResponseBody $ responseHTTPBody ans
 	case value of
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
-		_ -> throwError "Error reading url"
+		_ -> throwError "Error reading url, not a valid JSON response."
 
 getTitle :: HeleniumM String
 getTitle = do
@@ -288,7 +288,7 @@ getTitle = do
 	(status, value) <- processResponseBody $ responseHTTPBody ans
 	case value of
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
-		_ -> throwError "Error reading title"
+		_ -> throwError "Error reading title, not a valid JSON response."
 
 -- Refresh the current page.
 refresh :: HeleniumM ()
@@ -316,7 +316,7 @@ takeScreenshot name = do
 	(status, value) <- processResponseBody $ responseHTTPBody ans
 	case value of
 		JSON.JSString jsString -> saveScreenshot name (JSON.fromJSString jsString)
-		_ -> throwError "Error reading screenshot answer."
+		_ -> throwError "Error reading screenshot, not a valid JSON response."
 
 saveScreenshot :: String -> String -> HeleniumM ()
 saveScreenshot name png = do
@@ -352,8 +352,8 @@ processElementResponse ans = do
 	case value of
 		(JSON.JSObject obj) -> case JSON.valFromObj "ELEMENT" obj of
 			JSON.Ok (JSON.JSString element) -> return $ JSON.fromJSString element
-			_ -> throwError "Error reading element response"
-		_ -> throwError "Error reading element response"
+			_ -> throwError "Error reading element, not a valid JSON response."
+		_ -> throwError "Error reading element, not a valid JSON response."
 
 getElementById :: String -> HeleniumM String
 getElementById id = getElementBy "id" id
@@ -390,7 +390,7 @@ getElementText e = do
 	(status, value) <- processResponseBody $ responseHTTPBody ans
 	case value of
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
-		_ -> throwError "Error reading element text answer."
+		_ -> throwError "Error reading element text, not a valid JSON response."
 
 -- Submit a FORM element. The submit command may also be applied to any element 
 -- that is a descendant of a FORM element.
@@ -412,7 +412,7 @@ getCookies = do
 	(status, value) <- processResponseBody $ responseHTTPBody ans
 	case value of
 		JSON.JSArray cookies -> return cookies
-		_ -> throwError "Error reading cookies answer."
+		_ -> throwError "Error reading cookies, not a valid JSON response."
 
 getCookieByName :: String -> HeleniumM (Maybe JSON.JSValue)
 getCookieByName name = do
@@ -433,9 +433,9 @@ getCookieValue name = do
 	case cookie of
 		Just (JSON.JSObject obj) -> case JSON.valFromObj "value" obj of
 			JSON.Ok (JSON.JSString value) -> return $ JSON.fromJSString value
-			_ -> throwError $ "Error reading cookie value: " ++ name ++ "."
+			_ -> throwError $ "Error reading cookie value, not a valid JSON response."
 		Nothing -> throwError $ "Cookie does not exists: " ++ name ++ "."
-		_ -> throwError $ "Error reading cookie value: " ++ name ++ "."
+		_ -> throwError $ "Error reading cookie value, not a valid JSON response."
 
 getCookieExpiresEpoch :: String -> HeleniumM Int
 getCookieExpiresEpoch name = do
@@ -443,9 +443,9 @@ getCookieExpiresEpoch name = do
 	case cookie of
 		Just (JSON.JSObject obj) -> case JSON.valFromObj "expiry" obj of
 			JSON.Ok (JSON.JSRational False e) -> return $ fromEnum e
-			_ -> throwError $ "Error reading cookie expires: " ++ name ++ "."
+			_ -> throwError $ "Error reading cookie expires, not a valid JSON response."
 		Nothing -> throwError $ "Cookie does not exists: " ++ name ++ "."
-		_ -> throwError $ "Error reading cookie expires: " ++ name ++ "."
+		_ -> throwError $ "Error reading cookie expires, not a vlaid JSON response."
 
 deleteAllCookies :: HeleniumM ()
 deleteAllCookies = do
@@ -584,7 +584,7 @@ makeRequestUri rs rp = do
 	let baseUri = (serverHost state) ++ ":" ++ (show $ serverPort state)
 	uriPath <- if rs == True
 		then if isNothing sessionId
-			then throwError "Making a stateful call without a session"
+			then throwError "Making a stateful call without a session."
 			else return ("/session/" ++ (fromJust sessionId) ++ rp)
 		else return rp
 	return $ baseUri ++ (serverPath state) ++ uriPath
