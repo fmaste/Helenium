@@ -92,7 +92,9 @@ data HeleniumReader =
 		screenshotPath :: String
 	}
 
-type HeleniumWriter = [String]
+type HeleniumWriter = [(HeleniumWriterType, String)]
+
+data HeleniumWriterType = Error | Debug | Info
 
 data HeleniumState = 
 	HeleniumState {
@@ -150,13 +152,14 @@ showError :: HeleniumError -> IO ()
 showError e = putStrLn $ "An error ocurred: " ++ e
 
 showWriter :: HeleniumWriter -> IO ()
-showWriter w = mapM_ (\m -> putStrLn m) w
+-- TODO: Do something with message type!
+showWriter w = mapM_ (\(t,m) -> putStrLn m) w
 
 wrapTest :: HeleniumM () -> IO (HeleniumM ())
 wrapTest t = do
 	return $ do
 		reader <- ask
-		tell ["Running test: " ++ (name reader)]
+		tell [(Info, "Running test: " ++ (name reader))]
 		connect
 		-- TODO: The setElementTimeout must be executed within the catch.
 		setElementTimeout $ timeoutElement reader
@@ -169,7 +172,7 @@ wrapTest t = do
 echo :: String -> HeleniumM ()
 echo m = do
 	-- TODO: Add timestamp!!
-	tell [m]
+	tell [(Info,m)]
 
 -- Suspends the current thread for a given number of seconds.
 sleep :: Int -> HeleniumM ()
