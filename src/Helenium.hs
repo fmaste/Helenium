@@ -161,9 +161,10 @@ wrapTest t = do
 		reader <- ask
 		tell [(Info, "Running test: " ++ (name reader))]
 		connect
-		-- TODO: The setElementTimeout must be executed within the catch.
-		setElementTimeout $ timeoutElement reader
-		(t `catchError` (\e -> do {disconnect; throwError e}))
+		do {
+			setElementTimeout $ timeoutElement reader;
+			t
+		} `catchError` (\e -> do {disconnect; throwError e})
 		disconnect
 
 -- Commands
