@@ -181,6 +181,26 @@ wrapTest t = do
 -- Commands
 -------------------------------------------------------------------------------
 
+type ResponseStatus = Int
+
+type ResponseValue = JSON.JSValue
+
+processResponseBody :: String -> HeleniumM (ResponseStatus, ResponseValue)
+processResponseBody body = do
+	let jsonResult = processResponseBodyJson body
+	case jsonResult of
+		JSON.Error msg -> throwError msg
+		JSON.Ok ans -> return ans
+
+processResponseBodyJson :: String -> JSON.Result (ResponseStatus, ResponseValue)
+processResponseBodyJson body = do
+	json <- JSON.decode body :: JSON.Result (JSON.JSObject JSON.JSValue)
+	-- TODO: Do something with status!
+	-- status <- JSON.valFromObj "status" json
+	value <- JSON.valFromObj "value" json
+	-- TODO: Return status
+	return (0, value)
+
 -- Create a new session.
 connect :: HeleniumM ()
 connect = do
@@ -194,9 +214,9 @@ connect = do
 	let capabilitiesJson = JSON.makeObj capabilitiesArray'
 	let bodyJson = JSON.makeObj [("desiredCapabilities", capabilitiesJson)]
 	ans <- callSelenium $ Request False (Post $ JSON.encode bodyJson) "/session"
+	(status, value) <- processResponseBody $ responseHTTPBody ans
 	-- Response is: {"status":303,"value":"/session/f3ae93822f855f545dbdab66cc556453"}
-	let json = responseValue ans
-	case json of
+	case value of
 		JSON.JSString jsString -> do
 			let sessString = JSON.fromJSString jsString 
 			let sessId = drop (length "/session/") sessString
@@ -247,14 +267,16 @@ goTo url = do
 getUrl :: HeleniumM String
 getUrl = do
 	ans <- callSelenium $ Request True Get "/url"
-	case responseValue ans of
+	(status, value) <- processResponseBody $ responseHTTPBody ans
+	case value of
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
 		_ -> throwError "Error reading url"
 
 getTitle :: HeleniumM String
 getTitle = do
 	ans <- callSelenium $ Request True Get "/title"
-	case responseValue ans of
+	(status, value) <- processResponseBody $ responseHTTPBody ans
+	case value of
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
 		_ -> throwError "Error reading title"
 
@@ -280,8 +302,9 @@ forward = do
 takeScreenshot :: String -> HeleniumM ()
 takeScreenshot name = do
 	ans <- callSelenium $ Request True Get "/screenshot"
+	(status, value) <- processResponseBody $ responseHTTPBody ans
 	-- Returns the screenshot as a base64 encoded PNG.
-	case responseValue ans of
+	case value of
 		JSON.JSString jsString -> saveScreenshot name (JSON.fromJSString jsString)
 		_ -> throwError "Error reading screenshot answer."
 	return ()
@@ -315,8 +338,9 @@ getElementBy using value = do
 	processElementResponse ans
 
 processElementResponse :: Response -> HeleniumM String
-processElementResponse ans = do 
-	case responseValue ans of
+processElementResponse ans = do
+	(status, value) <- processResponseBody $ responseHTTPBody ans 
+	case value of
 		(JSON.JSObject obj) -> case JSON.valFromObj "ELEMENT" obj of
 			JSON.Ok (JSON.JSString element) -> return $ JSON.fromJSString element
 			_ -> throwError "Error reading element response"
@@ -354,7 +378,8 @@ clickElement e = do
 getElementText :: String -> HeleniumM String
 getElementText e = do
 	ans <- callSelenium $ Request True Get ("/element/" ++ e ++ "/text")
-	case responseValue ans of
+	(status, value) <- processResponseBody $ responseHTTPBody ans
+	case value of
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
 		_ -> throwError "Error reading element text answer."
 
@@ -419,8 +444,7 @@ data Response = Response {
 	responseHTTPCode :: ResponseHTTPCode,
 	responseHTTPReason :: ResponseHTTPReason,
 	responseHTTPHeaders :: [ResponseHTTPHeader],
-	responseStatus :: ResponseStatus,
-	responseValue :: ResponseValue}
+	responseHTTPBody :: ResponseHTTPBody}
 
 type ResponseHTTPCode = (Int, Int, Int)
 
@@ -432,9 +456,7 @@ data ResponseHTTPHeaderName = Location
 
 type ResponseHTTPHeaderValue = String
 
-type ResponseStatus = Int
-
-type ResponseValue = JSON.JSValue
+type ResponseHTTPBody = String
 
 callSelenium :: Request -> HeleniumM Response
 callSelenium req = do
@@ -470,27 +492,11 @@ processResponse res = do
 	-- Do something with the haders??
 	let headers = HTTP.rspHeaders res
 	let body = HTTP.rspBody res -- The body string
-	(status, value) <- processResponseBody body
-	return (Response (x,y,z) reason [] status value)
+	return (Response (x,y,z) reason [] body)
 
 processResponseCodes :: (Int, Int, Int) -> String -> HeleniumM String
 -- TODO: Do something!!!
 processResponseCodes (x, y, z) reason = return ""
-
-processResponseBody :: String -> HeleniumM (ResponseStatus, ResponseValue)
-processResponseBody body = do
-	let jsonResult = processResponseBodyJson body
-	case jsonResult of
-		JSON.Error msg -> throwError msg
-		JSON.Ok ans -> return ans
-
-processResponseBodyJson :: String -> JSON.Result (ResponseStatus, ResponseValue)
-processResponseBodyJson body = do
-	json <- JSON.decode body :: JSON.Result (JSON.JSObject JSON.JSValue)
-	-- status <- JSON.valFromObj "status" json
-	value <- JSON.valFromObj "value" json
-	-- TODO: Parse status
-	return (0, value)
 
 -- WebDriver command messages should conform to the HTTP/1.1 request specification. 
 -- All commands accept a content-type of application/json;charset=UTF-8. 
