@@ -94,7 +94,7 @@ data HeleniumReader =
 
 type HeleniumWriter = [(HeleniumWriterType, String)]
 
-data HeleniumWriterType = Error | Debug | Info
+data HeleniumWriterType = Info | Debug
 
 data HeleniumState = 
 	HeleniumState {
