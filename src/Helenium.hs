@@ -426,7 +426,11 @@ type ResponseHTTPCode = (Int, Int, Int)
 
 type ResponseHTTPReason = String
 
-type ResponseHTTPHeader = String
+type ResponseHTTPHeader = (ResponseHTTPHeaderName, ResponseHTTPHeaderValue)
+
+data ResponseHTTPHeaderName = Location
+
+type ResponseHTTPHeaderValue = String
 
 type ResponseStatus = Int
 
@@ -467,7 +471,7 @@ processResponse res = do
 	let headers = HTTP.rspHeaders res
 	let body = HTTP.rspBody res -- The body string
 	(status, value) <- processResponseBody body
-	return (Response (x,y,z) reason [""] status value)
+	return (Response (x,y,z) reason [] status value)
 
 processResponseCodes :: (Int, Int, Int) -> String -> HeleniumM String
 -- TODO: Do something!!!
