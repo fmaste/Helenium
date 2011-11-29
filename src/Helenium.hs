@@ -175,7 +175,7 @@ processResponseBody body = do
 	let body' = reverse $ dropWhile (== '\0') $ reverse body
 	let jsonResult = processResponseBodyJson body'
 	case jsonResult of
-		JSON.Error msg -> throwError msg
+		JSON.Error msg -> throwError $ "Error parsing JSON response: " ++ msg
 		JSON.Ok ans -> return ans
 
 processResponseBodyJson :: String -> JSON.Result (ResponseStatus, ResponseValue)
