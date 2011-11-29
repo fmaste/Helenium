@@ -60,6 +60,8 @@ login = do
 	sendKeysToElement passInput "123456"
 	echo "Submit login form."
 	submitElement passInput
+	cookieValue <- getCookieValue "login"
+	assertEq cookieValue "1"
 
 logout = do
 	echo "Click on the Sign out link."

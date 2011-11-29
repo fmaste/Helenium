@@ -32,6 +32,8 @@ module Helenium (
 	getElementText,
 	submitElement,
 	sendKeysToElement,
+	getCookieValue,
+	getCookieExpiresEpoch,
 	deleteAllCookies,
 	deleteCookieByName,
 	setTimeoutAsyncScript
@@ -43,6 +45,7 @@ module Helenium (
 
 import Data.Maybe
 import Data.Either
+import Data.List (find)
 import Control.Monad.Error
 import Control.Monad.RWS.Strict
 import qualified Network.URI as URI
@@ -398,12 +401,47 @@ sendKeysToElement e ks = do
 	callSelenium $ Request True (Post $ JSON.encode body) $ "/element/" ++ e ++ "/value"
 	return ()
 
-getCookies :: HeleniumM ()
+getCookies :: HeleniumM [JSON.JSValue]
 getCookies = do
 	ans <- callSelenium $ Request True Get "/cookie"
 	(status, value) <- processResponseBody $ responseHTTPBody ans
-	-- TODO: Do something with the cookies!
-	return ()
+	case value of
+		JSON.JSArray cookies -> return cookies
+		_ -> throwError "Error reading cookies answer."
+
+getCookieByName :: String -> HeleniumM JSON.JSValue
+getCookieByName name = do
+	cookies <- getCookies
+	let cookie = find (cookieFinder name) cookies
+	if isNothing cookie
+		then throwError $ "Cookie does not exists: " ++ name ++ "."
+		else return $ fromJust cookie
+
+cookieFinder :: String -> JSON.JSValue -> Bool
+cookieFinder name json = do
+	case json of
+		(JSON.JSObject obj) -> case JSON.valFromObj "name" obj of
+			JSON.Ok (JSON.JSString jsName) -> (name == (JSON.fromJSString jsName))
+			_ -> False
+		_ -> False
+
+getCookieValue :: String -> HeleniumM String
+getCookieValue name = do
+	cookie <- getCookieByName name
+	case cookie of
+		(JSON.JSObject obj) -> case JSON.valFromObj "value" obj of
+			JSON.Ok (JSON.JSString value) -> return $ JSON.fromJSString value
+			_ -> throwError $ "Error reading cookie value: " ++ name ++ "."
+		_ -> throwError $ "Error reading cookie value: " ++ name ++ "."
+
+getCookieExpiresEpoch :: String -> HeleniumM Int
+getCookieExpiresEpoch name = do
+	cookie <- getCookieByName name
+	case cookie of
+		(JSON.JSObject obj) -> case JSON.valFromObj "expiry" obj of
+			JSON.Ok (JSON.JSRational False e) -> return $ fromEnum e
+			_ -> throwError $ "Error reading cookie expires: " ++ name ++ "."
+		_ -> throwError $ "Error reading cookie expires: " ++ name ++ "."
 
 deleteAllCookies :: HeleniumM ()
 deleteAllCookies = do
