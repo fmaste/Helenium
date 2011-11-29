@@ -177,6 +177,7 @@ processResponseBody body = do
 	let jsonResult = processResponseBodyJson body'
 	case jsonResult of
 		JSON.Error msg -> throwError $ "Error parsing JSON response: " ++ msg
+		-- TODO: Check error status codes!
 		JSON.Ok ans -> return ans
 
 processResponseBodyJson :: String -> JSON.Result (ResponseStatus, ResponseValue)
