@@ -200,6 +200,7 @@ heleniumCapabilityKey WebStorageEnabled = "webStorageEnabled"
 heleniumCapabilityKey Rotatable = "rotatable"
 heleniumCapabilityKey AcceptSslCerts = "acceptSslCerts"
 heleniumCapabilityKey NativeEvents = "nativeEvents"
+
 -- Create a new session.
 connect :: HeleniumM ()
 connect = do
@@ -448,19 +449,17 @@ type RequestPath = String
 data Response = Response {
 	responseHTTPCode :: ResponseHTTPCode,
 	responseHTTPReason :: ResponseHTTPReason,
-	responseHTTPHeaders :: [ResponseHTTPHeader],
+	responseHTTPHeaders :: ResponseHTTPHeaders,
 	responseHTTPBody :: ResponseHTTPBody}
 
 type ResponseHTTPCode = (Int, Int, Int)
 
 type ResponseHTTPReason = String
 
-type ResponseHTTPHeader = (ResponseHTTPHeaderName, ResponseHTTPHeaderValue)
-
-data ResponseHTTPHeaderName = Location
-
-type ResponseHTTPHeaderValue = String
-
+data ResponseHTTPHeaders = ResponseHTTPHeaders {
+		responseHTTPHeaderLocation :: Maybe String
+	}
+	
 type ResponseHTTPBody = String
 
 callSelenium :: Request -> HeleniumM Response
@@ -495,13 +494,20 @@ processResponse res = do
 	let reason = HTTP.rspReason res -- The "Ok", "Found" that comes after the HTTP code
 	processResponseCodes (x, y, z) reason
 	-- Do something with the haders??
-	let headers = HTTP.rspHeaders res
+	headers <- processHeaders res
 	let body = HTTP.rspBody res -- The body string
-	return (Response (x,y,z) reason [] body)
+	return (Response (x,y,z) reason headers body)
 
 processResponseCodes :: (Int, Int, Int) -> String -> HeleniumM String
 -- TODO: Do something!!!
 processResponseCodes (x, y, z) reason = return ""
+
+processHeaders :: HTTP.Response String -> HeleniumM ResponseHTTPHeaders
+processHeaders httpRes = do
+	return $ ResponseHTTPHeaders {
+		responseHTTPHeaderLocation = HTTP.findHeader HTTP.HdrLocation httpRes
+	}
+	
 
 -- WebDriver command messages should conform to the HTTP/1.1 request specification. 
 -- All commands accept a content-type of application/json;charset=UTF-8. 
