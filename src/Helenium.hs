@@ -307,7 +307,6 @@ takeScreenshot name = do
 	case value of
 		JSON.JSString jsString -> saveScreenshot name (JSON.fromJSString jsString)
 		_ -> throwError "Error reading screenshot answer."
-	return ()
 
 saveScreenshot :: String -> String -> HeleniumM ()
 saveScreenshot name png = do
