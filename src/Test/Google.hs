@@ -2,7 +2,6 @@ module Test.Google where
 
 import Helenium
 
-main :: IO ()
 main = do
 	let reader = HeleniumReader {
 		name = "Google",

@@ -2,7 +2,6 @@ module Test.Login where
 
 import Helenium
 
-main :: IO ()
 main = do
 	let config = HeleniumReader {
 		name = "Login",
