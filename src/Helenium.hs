@@ -182,12 +182,13 @@ processResponseBody body = do
 processResponseBodyJson :: String -> JSON.Result (ResponseStatus, ResponseValue)
 processResponseBodyJson body = do
 	-- The response must be a JSON object with a "status" and a "value" property.
-	json <- JSON.decode body :: JSON.Result (JSON.JSObject JSON.JSValue)
-	-- TODO: Do something with status!
-	-- status <- JSON.valFromObj "status" json
+	json <- (JSON.decode body :: (JSON.Result (JSON.JSObject JSON.JSValue)))
+	statusJson <- JSON.valFromObj "status" json
+	status <- case JSON.readJSON statusJson of
+		JSON.Ok (JSON.JSRational False e) -> return $ fromEnum e
+		_ -> throwError "Error parsing JSON reponse: Invalid status."
 	value <- JSON.valFromObj "value" json
-	-- TODO: Return status
-	return (0, value)
+	return (status, value)
 
 heleniumBrowserNameKey Chrome = "chrome"
 heleniumBrowserNameKey Firefox = "firefox"
