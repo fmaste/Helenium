@@ -396,6 +396,13 @@ sendKeysToElement e ks = do
 	callSelenium $ Request True (Post $ JSON.encode body) $ "/element/" ++ e ++ "/value"
 	return ()
 
+getCookies :: HeleniumM ()
+getCookies = do
+	ans <- callSelenium $ Request True Get "/cookie"
+	(status, value) <- processResponseBody $ responseHTTPBody ans
+	-- TODO: Do something with the cookies!
+	return ()
+
 deleteAllCookies :: HeleniumM ()
 deleteAllCookies = do
 	callSelenium $ Request True Delete "/cookie"
