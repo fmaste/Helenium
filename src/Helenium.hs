@@ -418,12 +418,15 @@ type RequestPath = String
 data Response = Response {
 	responseHTTPCode :: ResponseHTTPCode,
 	responseHTTPReason :: ResponseHTTPReason,
+	responseHTTPHeaders :: ResponseHTTPHeaders,
 	responseStatus :: ResponseStatus,
 	responseValue :: ResponseValue}
 
 type ResponseHTTPCode = (Int, Int, Int)
 
 type ResponseHTTPReason = String
+
+type ResponseHTTPHeaders = String
 
 type ResponseStatus = Int
 
@@ -464,7 +467,7 @@ processResponse res = do
 	let headers = HTTP.rspHeaders res
 	let body = HTTP.rspBody res -- The body string
 	(status, value) <- processResponseBody body
-	return (Response (x,y,z) reason status value)
+	return (Response (x,y,z) reason "" status value)
 
 processResponseCodes :: (Int, Int, Int) -> String -> HeleniumM String
 -- TODO: Do something!!!
