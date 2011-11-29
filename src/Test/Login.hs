@@ -35,8 +35,10 @@ test = do
 	-- Not supported on linux.
 	-- takeScreenshot "login"
 	login
+	assertCookieLogin
 	assertProfile
 	logout
+	assertCookieLogout
 	login
 	refresh
 	assertProfile
@@ -60,8 +62,6 @@ login = do
 	sendKeysToElement passInput "123456"
 	echo "Submit login form."
 	submitElement passInput
-	cookieValue <- getCookieValue "login"
-	assertEq cookieValue "1"
 
 logout = do
 	echo "Click on the Sign out link."
@@ -77,4 +77,13 @@ assertProfile = do
 	profileTitleElement <- getElementByXPath "//div[@id='item-top']//p[@id='olx_item_title']"
 	profileTitleText <- getElementText profileTitleElement
 	assertEq profileTitleText "fmaste's Profile"
+
+assertCookieLogin = do
+	echo "Test if the login cookie exists."
+	cookieValue <- getCookieValue "login"
+	assertEq cookieValue "1"
+
+assertCookieLogout = do
+	echo "Test if the login cookie does not exists."
+	assertCookieDoesNotExists "login"
 

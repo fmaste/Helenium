@@ -36,6 +36,7 @@ module Helenium (
 	getCookieExpiresEpoch,
 	deleteAllCookies,
 	deleteCookieByName,
+	assertCookieDoesNotExists,
 	setTimeoutAsyncScript
 	-- TODO: execute,
 	-- TODO: executeAsync,
@@ -409,18 +410,15 @@ getCookies = do
 		JSON.JSArray cookies -> return cookies
 		_ -> throwError "Error reading cookies answer."
 
-getCookieByName :: String -> HeleniumM JSON.JSValue
+getCookieByName :: String -> HeleniumM (Maybe JSON.JSValue)
 getCookieByName name = do
 	cookies <- getCookies
-	let cookie = find (cookieFinder name) cookies
-	if isNothing cookie
-		then throwError $ "Cookie does not exists: " ++ name ++ "."
-		else return $ fromJust cookie
+	return $ find (cookieFinder name) cookies
 
 cookieFinder :: String -> JSON.JSValue -> Bool
 cookieFinder name json = do
 	case json of
-		(JSON.JSObject obj) -> case JSON.valFromObj "name" obj of
+		JSON.JSObject obj -> case JSON.valFromObj "name" obj of
 			JSON.Ok (JSON.JSString jsName) -> (name == (JSON.fromJSString jsName))
 			_ -> False
 		_ -> False
@@ -429,18 +427,20 @@ getCookieValue :: String -> HeleniumM String
 getCookieValue name = do
 	cookie <- getCookieByName name
 	case cookie of
-		(JSON.JSObject obj) -> case JSON.valFromObj "value" obj of
+		Just (JSON.JSObject obj) -> case JSON.valFromObj "value" obj of
 			JSON.Ok (JSON.JSString value) -> return $ JSON.fromJSString value
 			_ -> throwError $ "Error reading cookie value: " ++ name ++ "."
+		Nothing -> throwError $ "Cookie does not exists: " ++ name ++ "."
 		_ -> throwError $ "Error reading cookie value: " ++ name ++ "."
 
 getCookieExpiresEpoch :: String -> HeleniumM Int
 getCookieExpiresEpoch name = do
 	cookie <- getCookieByName name
 	case cookie of
-		(JSON.JSObject obj) -> case JSON.valFromObj "expiry" obj of
+		Just (JSON.JSObject obj) -> case JSON.valFromObj "expiry" obj of
 			JSON.Ok (JSON.JSRational False e) -> return $ fromEnum e
 			_ -> throwError $ "Error reading cookie expires: " ++ name ++ "."
+		Nothing -> throwError $ "Cookie does not exists: " ++ name ++ "."
 		_ -> throwError $ "Error reading cookie expires: " ++ name ++ "."
 
 deleteAllCookies :: HeleniumM ()
@@ -452,6 +452,13 @@ deleteCookieByName :: String -> HeleniumM ()
 deleteCookieByName name = do
 	callSelenium $ Request True Delete ("/cookie/" ++ name)
 	return ()
+
+assertCookieDoesNotExists :: String -> HeleniumM ()
+assertCookieDoesNotExists name = do
+	cookie <- getCookieByName name
+	case cookie of
+		Nothing -> return ()
+		_ -> throwError $ "Cookie exists: " ++ name ++ "."
 
 -- Set the amount of time, in milliseconds, that asynchronous scripts executed 
 -- by /session/:sessionId/execute_async are permitted to run before they are 
