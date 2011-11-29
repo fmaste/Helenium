@@ -30,7 +30,6 @@ main = do
         }
         runTest config state test
 
-test :: HeleniumM ()
 test = do
 	goTo "http://www.aaa.com"
 	-- Not supported on linux.
@@ -50,7 +49,6 @@ test = do
 	refresh
 	login
 	
-login :: HeleniumM ()
 login = do
 	echo "Click on the Sign in link."
 	signInLink <- getElementByText "Sign in"
@@ -63,13 +61,11 @@ login = do
 	echo "Submit login form."
 	submitElement passInput
 
-logout :: HeleniumM ()
 logout = do
 	echo "Click on the Sign out link."
 	signOutLink <- getElementByText "Sign out"
 	clickElement signOutLink
 
-assertProfile :: HeleniumM ()
 assertProfile = do
 	echo "Look for the username link that should be on the header."
 	userLink <- getElementByText "fmaste"

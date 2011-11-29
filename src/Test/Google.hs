@@ -33,7 +33,6 @@ main = do
 	runTest reader state test
 
 -- Test to search google on Google!
-test :: HeleniumM ()
 test = do
 	goTo "http://www.google.com"
 	searchInput <- getElementById "lst-ib"
