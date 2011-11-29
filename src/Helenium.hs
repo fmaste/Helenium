@@ -214,14 +214,14 @@ connect = do
 	let capabilitiesJson = JSON.makeObj capabilitiesArray'
 	let bodyJson = JSON.makeObj [("desiredCapabilities", capabilitiesJson)]
 	ans <- callSelenium $ Request False (Post $ JSON.encode bodyJson) "/session"
-	(status, value) <- processResponseBody $ responseHTTPBody ans
-	-- Response is: {"status":303,"value":"/session/f3ae93822f855f545dbdab66cc556453"}
-	case value of
-		JSON.JSString jsString -> do
-			let sessString = JSON.fromJSString jsString 
-			let sessId = drop (length "/session/") sessString
+	-- Return a redirect with header:
+	-- Location: /session/bf8deb5adc6e61e87c09913f78e5c82c
+	let location = responseHTTPHeaderLocation $ responseHTTPHeaders ans
+	case location of
+		Just location -> do
+			let sessId = reverse $ takeWhile (/= '/') $ reverse location
 			put $ state {serverSessionId = (Just sessId)}
-		_ -> throwError "Response has an invalid new session."
+		Nothing -> throwError "Response has an invalid new session."
 	return () 
 
 -- Set the amount of time the driver should wait when searching for elements.
