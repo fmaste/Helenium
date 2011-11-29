@@ -181,6 +181,7 @@ processResponseBody body = do
 
 processResponseBodyJson :: String -> JSON.Result (ResponseStatus, ResponseValue)
 processResponseBodyJson body = do
+	-- The response must be a JSON object with a "status" and a "value" property.
 	json <- JSON.decode body :: JSON.Result (JSON.JSObject JSON.JSValue)
 	-- TODO: Do something with status!
 	-- status <- JSON.valFromObj "status" json
