@@ -167,7 +167,9 @@ type ResponseValue = JSON.JSValue
 
 processResponseBody :: String -> HeleniumM (ResponseStatus, ResponseValue)
 processResponseBody body = do
-	let jsonResult = processResponseBodyJson body
+	-- Remove trailing nuls.
+	let body' = reverse $ dropWhile (== '\0') $ reverse body
+	let jsonResult = processResponseBodyJson body'
 	case jsonResult of
 		JSON.Error msg -> throwError msg
 		JSON.Ok ans -> return ans
