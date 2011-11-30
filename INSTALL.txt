@@ -7,3 +7,16 @@ cabal install json
 # Run the chromedriver server for your platform.
 # Just be sure to have Chrome installed in your platform default directory.
 
+# Running the server on a virtual machine.
+# sudo apt-get install ssh avahi-daemon default-jre xvfb firefox
+
+# If cloning from another Ubuntu Viartualbox machine:
+# sudo rm /etc/udev/rules.d/70-persistent-net.rules
+# To change hostname:
+# sudo /bin/hostname mynewhostname
+# Change it in /etc/hostname and /etc/hosts
+# Call, sudo service hostaname start
+# To use the server with different DNSs, change the following lines in /etc/dhcp3/dhclient.conf
+# supersede domain-name “example.com”
+# prepend domain-name-server xxx.xxx.xxx.1, xxx.xxx.xxx.2
+
