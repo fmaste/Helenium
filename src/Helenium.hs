@@ -12,6 +12,7 @@ module Helenium (
 	runTest,
 	echo,
 	sleep,
+	times,
 	assertEqual,
 	assertLess,
 	assertGreater,
@@ -184,6 +185,9 @@ sleep :: Int -> HeleniumM ()
 sleep ms = do
 	liftIO $ Sys.sleep ms
 	return ()
+
+times :: Int -> HeleniumM () -> HeleniumM ()
+times n t = replicateM_ n t
 
 assert :: Show x => String -> (x -> x -> Bool) -> x -> x -> HeleniumM ()
 assert p f a b =
