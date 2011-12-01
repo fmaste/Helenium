@@ -3,7 +3,7 @@ module Test.Google where
 import Helenium
 
 main = do
-	let reader = HeleniumReader {
+	let config = HeleniumReader {
 		name = "Google",
 		server = "http://127.0.0.1:4444/wd/hub",
 		-- server = "http://127.0.0.1:9515",
@@ -15,18 +15,7 @@ main = do
 		timeoutElement = 3000,
 		screenshotPath = "/home/developer"
 	}
-	let state = HeleniumState {
-		serverCapabilities = [
-			JavascriptEnabled,
-			TakesScreenshot,
-			ApplicationCacheEnabled,
-			BrowserConnectionEnabled,
-			HandlesAlerts,
-			CssSelectorsEnabled
-		],
-		serverSessionId = Nothing
-	}
-	runTest reader state test
+	runTest config test
 
 -- Test to search google on Google!
 test = do

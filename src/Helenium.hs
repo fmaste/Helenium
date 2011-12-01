@@ -142,12 +142,23 @@ data HeleniumCapability =
 -- Test runner.
 -------------------------------------------------------------------------------
 
-runTest :: HeleniumReader -> HeleniumState -> HeleniumM () -> IO ()
-runTest r s t = do
+runTest :: HeleniumReader -> HeleniumM () -> IO ()
+runTest r t = do
 	-- If the URI has a trailing '/', remove it..
 	let r' = if (last $ server r) == '/'
 		then r {server = (init $ server r)}
 		else r
+	let s = HeleniumState {
+		serverCapabilities = [
+			JavascriptEnabled,
+			TakesScreenshot,
+			ApplicationCacheEnabled,
+			BrowserConnectionEnabled,
+			HandlesAlerts,
+			CssSelectorsEnabled
+		],
+		serverSessionId = Nothing
+	}
 	t' <- wrapTest t
 	(eitherAns, s', w) <- runHeleniumM t' r' s
 	showWriter w

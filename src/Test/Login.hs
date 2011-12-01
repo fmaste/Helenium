@@ -15,18 +15,7 @@ main = do
 		timeoutElement = 3000,
 		screenshotPath = "/home/developer"
 	}
-	let state = HeleniumState {
-		serverCapabilities = [
-			JavascriptEnabled,
-			TakesScreenshot,
-			ApplicationCacheEnabled,
-			BrowserConnectionEnabled,
-			HandlesAlerts,
-			CssSelectorsEnabled
-		],
-		serverSessionId = Nothing
-	}
-	runTest config state test
+	runTest config test
 
 test = do
 	goTo "http://www.aaa.com"
