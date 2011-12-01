@@ -18,6 +18,9 @@ module Helenium (
 	assertGreater,
 	assertLessOrEqual,
 	assertGreaterOrEqual,
+	assertPrefix,
+	assertSuffix,
+	assertInfix,
 	goTo,
 	getUrl,
 	getTitle,
@@ -51,7 +54,7 @@ module Helenium (
 
 import Data.Maybe
 import Data.Either
-import Data.List (find)
+import Data.List (find, isPrefixOf, isSuffixOf, isInfixOf)
 import Control.Monad.Error
 import Control.Monad.RWS.Strict
 import qualified Network.URI as URI
@@ -209,6 +212,15 @@ assertLessOrEqual a b = assert "less" (<) a b
 
 assertGreaterOrEqual :: (Ord x, Show x) => x -> x -> HeleniumM ()
 assertGreaterOrEqual a b = assert "greater" (>) a b
+
+assertPrefix :: String -> String -> HeleniumM ()
+assertPrefix a b = assert "prefix" isPrefixOf a b
+
+assertSuffix :: String -> String -> HeleniumM ()
+assertSuffix a b = assert "suffix" isSuffixOf a b
+
+assertInfix :: String -> String -> HeleniumM ()
+assertInfix a b = assert "infix" isInfixOf a b
 
 type ResponseStatus = Int
 
