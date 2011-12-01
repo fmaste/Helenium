@@ -23,7 +23,7 @@ main = do
 			ApplicationCacheEnabled,
 			BrowserConnectionEnabled,
 			HandlesAlerts,
-			cssSelectorsEnabled
+			CssSelectorsEnabled
 		],
 		serverSessionId = Nothing
 	}
