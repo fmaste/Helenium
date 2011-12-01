@@ -1,6 +1,5 @@
 module Helenium (
 	HeleniumM,
-	HeleniumError,
 	HeleniumReader (..),
 	HeleniumWriter,
 	HeleniumBrowser (..),
