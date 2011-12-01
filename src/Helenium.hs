@@ -1,7 +1,6 @@
 module Helenium (
 	HeleniumM,
 	HeleniumReader (..),
-	HeleniumWriter,
 	HeleniumBrowser (..),
 	HeleniumBrowserName (..),
 	HeleniumBrowserVersion,
