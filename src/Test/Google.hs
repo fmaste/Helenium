@@ -6,7 +6,8 @@ main = do
 	let reader = HeleniumReader {
 		name = "Google",
 		server = "http://127.0.0.1:4444/wd/hub",
-		-- server = "http://127.0.0.1:9515"
+		-- server = "http://127.0.0.1:9515",
+		browser = HeleniumBrowser Firefox "16" Linux,
 		logTime = True,
 		debugHttp = True,
 		debugTime = False, -- TODO: Debug how long it takes to run the test.
@@ -15,7 +16,6 @@ main = do
 		screenshotPath = "/home/developer"
 	}
 	let state = HeleniumState {
-		serverBrowser = HeleniumBrowser Firefox "16" Linux,
 		serverCapabilities = [
 			JavascriptEnabled,
 			TakesScreenshot,

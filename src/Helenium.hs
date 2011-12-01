@@ -93,6 +93,7 @@ data HeleniumReader =
 	HeleniumReader {
 		name :: String,
 		server :: String,
+		browser :: HeleniumBrowser,
 		logTime :: Bool,
 		debugHttp :: Bool,
 		debugTime :: Bool,
@@ -107,7 +108,6 @@ data HeleniumWriterType = Info | Debug
 
 data HeleniumState = 
 	HeleniumState {
-		serverBrowser :: HeleniumBrowser,
 		serverCapabilities :: [HeleniumCapability],
 		serverSessionId :: Maybe String
 	}
@@ -273,12 +273,13 @@ heleniumCapabilityKey NativeEvents = "nativeEvents"
 connect :: HeleniumM ()
 connect = do
 	state <- get
-	let browser = heleniumBrowserNameKey $ browserName $ serverBrowser state
+	reader <- ask
+	let b = heleniumBrowserNameKey $ browserName $ browser reader
 	let capabilities = serverCapabilities state
 	let capabilitiesArray = map 
 		(\c -> (heleniumCapabilityKey c, JSON.JSBool True)) 
 		capabilities
-	let capabilitiesArray' = capabilitiesArray ++ [("browserName", JSON.showJSON browser)]
+	let capabilitiesArray' = capabilitiesArray ++ [("browserName", JSON.showJSON b)]
 	let capabilitiesJson = JSON.makeObj capabilitiesArray'
 	let bodyJson = JSON.makeObj [("desiredCapabilities", capabilitiesJson)]
 	ans <- callSelenium $ Request False (Post $ JSON.encode bodyJson) "/session"

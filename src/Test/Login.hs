@@ -7,6 +7,7 @@ main = do
 		name = "Login",
 		server = "http://selenium-server-dev.local",
 		-- server = "http://127.0.0.1:4444/wd/hub",
+		browser = HeleniumBrowser Firefox "16" Linux,
 		logTime = True,
 		debugHttp = False,
 		debugTime = False,
@@ -15,7 +16,6 @@ main = do
 		screenshotPath = "/home/developer"
 	}
 	let state = HeleniumState {
-		serverBrowser = HeleniumBrowser Firefox "16" Linux,
 		serverCapabilities = [
 			JavascriptEnabled,
 			TakesScreenshot,
