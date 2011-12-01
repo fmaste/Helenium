@@ -108,8 +108,10 @@ data HeleniumWriterType = Info | Debug
 data HeleniumState = 
 	HeleniumState {
 		serverCapabilities :: [HeleniumCapability],
-		serverSessionId :: Maybe String
+		serverSessionId :: Maybe HeleniumSessionId
 	}
+
+type HeleniumSessionId = String
 
 data HeleniumBrowser = 
 	HeleniumBrowser {
