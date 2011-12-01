@@ -57,6 +57,8 @@ import qualified Network.URI as URI
 import qualified Network.HTTP as HTTP
 import qualified Network.HTTP.Stream as Stream
 import qualified Text.JSON as JSON
+import System (getArgs)
+import System.Console.GetOpt
 import qualified System.Posix.Unistd as Sys
 
 -------------------------------------------------------------------------------
@@ -137,6 +139,54 @@ data HeleniumCapability =
 
 -- Test runner.
 -------------------------------------------------------------------------------
+
+{-
+data Options = ServerURI String | BrowserName HeleniumBrowserName
+
+browserStringToBrowserName :: String -> HeleniumBrowserName
+browserStringToBrowserName "chrome" = Chrome
+browserStringToBrowserName "firefox" = Firefox
+browserStringToBrowserName "htmlunit" = HtmlUnit
+browserStringToBrowserName "internet explorer" = IE
+browserStringToBrowserName "iphone" = IPhone
+
+options :: [OptDescr Options]
+options = [
+	Option 
+		['s'] 
+		["server"] 
+		(ReqArg ServerURI "URI") 
+		"server URI",
+	Option 
+		['b'] 
+		["browser"]
+		(ReqArg (\s -> BrowserName $ browserStringToBrowserName s) "BROWSER NAME")
+		"browser name"]
+
+runTest :: HeleniumM () -> IO ()
+runTest t = do
+	args <- getArgs
+	let (args', nonOpts, errMsgs) = getOpt RequireOrder options args
+	when (not $ null nonOpts) (error $ "Unrecognized arguments: " ++ unwords nonOpts)
+	when (not $ null errMsgs) (error $ usageInfo "Usage: " options) -- TODO: Show errMsgs
+	let config = HeleniumReader {
+		name = "Test",
+		server = "http://127.0.0.1:9515",
+		browser = HeleniumBrowser Chrome "16" Linux,
+		logTime = True,
+		debugHttp = False,
+		debugTime = False,
+		timeoutTest = 0,
+		timeoutElement = 5000,
+		screenshotPath = "/home/developer"
+	}
+	let config' = foldl updateConfig config args'
+	runTest' config' t
+	
+updateConfig :: HeleniumReader -> Options -> HeleniumReader
+updateConfig c (ServerURI s) = c {server = s}
+updateConfig c (BrowserName b) = c {browser = HeleniumBrowser b "16" Linux}
+-}
 
 runTest :: HeleniumReader -> HeleniumM () -> IO ()
 runTest r t = do
