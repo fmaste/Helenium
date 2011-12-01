@@ -35,6 +35,7 @@ module Helenium (
 	clickElement,
 	getElementText,
 	submitElement,
+	sendKeys,
 	sendKeysToElement,
 	getCookieValue,
 	getCookieExpiresEpoch,
@@ -496,6 +497,13 @@ getElementText e = do
 submitElement :: String -> HeleniumM ()
 submitElement e = do
 	callSelenium $ Request True (Post "") $ "/element/" ++ e ++ "/submit"
+	return ()
+
+sendKeys :: [Char] -> HeleniumM ()
+sendKeys ks = do
+	let body = JSON.toJSObject [
+		("value", JSON.JSArray $ map JSON.showJSON ks)]
+	callSelenium $ Request True (Post $ JSON.encode body) "/keys"
 	return ()
 
 sendKeysToElement :: String -> [Char] -> HeleniumM ()
