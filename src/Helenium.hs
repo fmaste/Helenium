@@ -3,7 +3,6 @@ module Helenium (
 	HeleniumError,
 	HeleniumReader (..),
 	HeleniumWriter,
-	HeleniumState (..),
 	HeleniumBrowser (..),
 	HeleniumBrowserName (..),
 	HeleniumBrowserVersion,
