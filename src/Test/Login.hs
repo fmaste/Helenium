@@ -27,7 +27,7 @@ main = do
 		],
 		serverSessionId = Nothing
 	}
-	runTest config state test)
+	runTest config state test
 
 test = do
 	goTo "http://www.aaa.com"
