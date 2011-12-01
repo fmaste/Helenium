@@ -5,7 +5,6 @@ module Helenium (
 	HeleniumBrowserName (..),
 	HeleniumBrowserVersion,
 	HeleniumBrowserPlatform (..),
-	HeleniumCapability (..),
 	runTest,
 	echo,
 	sleep,
