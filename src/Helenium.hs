@@ -231,7 +231,7 @@ processResponseBodyJson body = do
 	statusJson <- JSON.valFromObj "status" json
 	status <- case JSON.readJSON statusJson of
 		JSON.Ok (JSON.JSRational False e) -> return $ fromEnum e
-		_ -> throwError "Error parsing JSON reponse: Invalid status property."
+		JSON.Error msg -> JSON.Error "Error parsing JSON reponse: Invalid status property."
 	value <- JSON.valFromObj "value" json
 	return (status, value)
 
