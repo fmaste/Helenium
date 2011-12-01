@@ -5,6 +5,8 @@ import Helenium
 main = do
 	let config = HeleniumReader {
 		name = "Login",
+		server = "http://selenium-server-dev.local",
+		-- server = "http://127.0.0.1:4444/wd/hub",
 		logTime = True,
 		debugHttp = False,
 		debugTime = False,
@@ -13,10 +15,7 @@ main = do
 		screenshotPath = "/home/developer"
 	}
 	let state = HeleniumState {
-		serverHost = "http://127.0.0.1",
-		serverPort = 9515,
-		serverPath = "",
-		serverBrowser = HeleniumBrowser Chrome "16" Linux,
+		serverBrowser = HeleniumBrowser Firefox "16" Linux,
 		serverCapabilities = [
 			JavascriptEnabled,
 			TakesScreenshot,

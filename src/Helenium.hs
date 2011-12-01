@@ -92,6 +92,7 @@ type HeleniumError = String
 data HeleniumReader = 
 	HeleniumReader {
 		name :: String,
+		server :: String,
 		logTime :: Bool,
 		debugHttp :: Bool,
 		debugTime :: Bool,
@@ -106,9 +107,6 @@ data HeleniumWriterType = Info | Debug
 
 data HeleniumState = 
 	HeleniumState {
-		serverHost :: String,
-		serverPort :: Integer,
-		serverPath :: String,
 		serverBrowser :: HeleniumBrowser,
 		serverCapabilities :: [HeleniumCapability],
 		serverSessionId :: Maybe String
@@ -146,8 +144,12 @@ data HeleniumCapability =
 
 runTest :: HeleniumReader -> HeleniumState -> HeleniumM () -> IO ()
 runTest r s t = do
+	-- If the URI has a trailing '/', remove it..
+	let r' = if (last $ server r) == '/'
+		then r {server = (init $ server r)}
+		else r
 	t' <- wrapTest t
-	(eitherAns, s', w) <- runHeleniumM t' r s
+	(eitherAns, s', w) <- runHeleniumM t' r' s
 	showWriter w
 	case eitherAns of
 		Left err -> showError err
@@ -619,14 +621,14 @@ makeRequest (Request rs rm rp) = do
 makeRequestUri :: RequestStateful -> RequestPath -> HeleniumM String
 makeRequestUri rs rp = do
 	state <- get
+	reader <- ask
 	let sessionId = serverSessionId state
-	let baseUri = (serverHost state) ++ ":" ++ (show $ serverPort state)
 	uriPath <- if rs == True
 		then if isNothing sessionId
 			then throwError "Making a stateful call without a session."
 			else return ("/session/" ++ (fromJust sessionId) ++ rp)
 		else return rp
-	return $ baseUri ++ (serverPath state) ++ uriPath
+	return $ (server reader) ++ uriPath
 
 makeRequestMethod :: RequestMethod -> HeleniumM HTTP.RequestMethod
 makeRequestMethod Get = do return HTTP.GET
