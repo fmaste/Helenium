@@ -24,6 +24,9 @@ module Helenium (
 	back,
 	forward,
 	takeScreenshot,
+	changeFocusToIframeId,
+	changeFocusToIframeNumber,
+	changeFocusToDefaultIframe,
 	getActiveElement,
 	getElementById,
 	getElementByName,
@@ -456,6 +459,24 @@ saveScreenshot name png = do
 	if null err
 		then return ()
 		else throwError $ "Error saving screenshot: " ++ (show err)
+
+changeFocusToIframeId :: String -> HeleniumM ()
+changeFocusToIframeId iframeName = do
+	let body = JSON.toJSObject [("id", JSON.toJSString iframeName)]
+	ans <- callSelenium $ Request True (Post $ JSON.encode body) "/frame"
+	return ()
+
+changeFocusToIframeNumber :: Int -> HeleniumM ()
+changeFocusToIframeNumber iframeNumber = do
+	let body = JSON.toJSObject [("id", JSON.showJSON iframeNumber)]
+	ans <- callSelenium $ Request True (Post $ JSON.encode body) "/frame"
+	return ()
+
+changeFocusToDefaultIframe :: HeleniumM ()
+changeFocusToDefaultIframe = do
+	let body = JSON.toJSObject [("id", JSON.JSNull)]
+	ans <- callSelenium $ Request True (Post $ JSON.encode body) "/frame"
+	return ()
 
 -- Get the element on the page that currently has focus.
 getActiveElement :: HeleniumM String
