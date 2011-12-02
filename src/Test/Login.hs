@@ -6,24 +6,15 @@ main = runTest test
 
 test = do
 	goTo "http://www.olx.com"
-	-- Not supported on linux.
-	-- takeScreenshot "login"
 	login
+	assertUSHomePage
+	assertLogoutLink
 	assertCookieLogin
-	assertProfile
-	logout
-	assertCookieLogout
-	login
+	echo "Wait for 5 minutes and refresh."
+	sleep (60 * 5) -- Wait 5 minutes
 	refresh
-	assertProfile
-	logout
-	login
-	deleteAllCookies
-	refresh
-	login
-	deleteCookieByName "login"
-	refresh
-	login
+	assertLogoutLink
+	assertCookieLogin
 
 login = do
 	echo "Click on the Sign in link."
@@ -32,15 +23,23 @@ login = do
 	echo "Fill the login form."
 	userInput <- getElementById "username"
 	passInput <- getElementById "password"
-	sendKeysToElement userInput "fmaste"
+	sendKeysToElement userInput "user"
 	sendKeysToElement passInput "123456"
 	echo "Submit login form."
 	submitElement passInput
 
-logout = do
-	echo "Click on the Sign out link."
-	signOutLink <- getElementByText "Sign out"
-	clickElement signOutLink
+assertUSHomePage = do
+	url <- getUrl
+	assertPrefix "http://www.olx.com" url
+
+assertLogoutLink = do
+	echo "Assert if the logout button exists."
+	getElementByText "Sign out"
+
+assertCookieLogin = do 
+	echo "Assert if the login cookie exists and has value 1."
+	cookieValue <- getCookieValue "login"
+	assertEqual cookieValue "1"
 
 assertProfile = do
 	echo "Look for the username link that should be on the header."
@@ -51,13 +50,4 @@ assertProfile = do
 	profileTitleElement <- getElementByXPath "//div[@id='item-top']//p[@id='olx_item_title']"
 	profileTitleText <- getElementText profileTitleElement
 	assertEqual profileTitleText "fmaste's Profile"
-
-assertCookieLogin = do
-	echo "Test if the login cookie exists."
-	cookieValue <- getCookieValue "login"
-	assertEqual cookieValue "1"
-
-assertCookieLogout = do
-	echo "Test if the login cookie does not exists."
-	assertCookieDoesNotExists "login"
 
