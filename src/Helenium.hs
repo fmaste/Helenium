@@ -51,6 +51,7 @@ module Helenium (
 
 import Data.Maybe
 import Data.Either
+import qualified Data.Time as Time
 import Data.List (find, isPrefixOf, isSuffixOf, isInfixOf)
 import Control.Monad.Error
 import Control.Monad.RWS.Strict
@@ -101,9 +102,9 @@ data HeleniumReader =
 		screenshotPath :: String
 	}
 
-type HeleniumWriter = [(HeleniumWriterType, String)]
+type HeleniumWriter = [(Time.UTCTime, HeleniumWriterLevel, String)]
 
-data HeleniumWriterType = Info | Debug
+data HeleniumWriterLevel = Info | Debug
 
 data HeleniumState = 
 	HeleniumState {
@@ -223,13 +224,13 @@ showError e = putStrLn $ "An error ocurred: " ++ e
 
 showWriter :: HeleniumWriter -> IO ()
 -- TODO: Do something with message type!
-showWriter w = mapM_ (\(t,m) -> putStrLn m) w
+showWriter w = mapM_ (\(time, level, m) -> putStrLn m) w
 
 wrapTest :: HeleniumM () -> IO (HeleniumM ())
 wrapTest t = do
 	return $ do
 		reader <- ask
-		tell [(Info, "Running test: " ++ (name reader))]
+		logMsg Info ("Running test: " ++ (name reader))
 		connect
 		do {
 			setElementTimeout $ timeoutElement reader;
@@ -237,13 +238,17 @@ wrapTest t = do
 		} `catchError` (\e -> do {disconnect; throwError e})
 		disconnect
 
+logMsg :: HeleniumWriterLevel -> String -> HeleniumM ()
+logMsg level msg = do
+	time <- liftIO $ Time.getCurrentTime
+	tell [(time, level, msg)]
+
 -- Commands
 -------------------------------------------------------------------------------
 
 echo :: String -> HeleniumM ()
 echo m = do
-	-- TODO: Add timestamp!!
-	tell [(Info,m)]
+	logMsg Info m
 
 -- Suspends the current thread for a given number of seconds.
 sleep :: Int -> HeleniumM ()
