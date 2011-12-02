@@ -102,9 +102,11 @@ data HeleniumReader =
 		screenshotPath :: String
 	}
 
-type HeleniumWriter = [(Time.UTCTime, HeleniumWriterLevel, String)]
+type HeleniumWriter = [(Time.UTCTime, HeleniumWriterLevel, HeleniumWriterMsg)]
 
 data HeleniumWriterLevel = Info | Debug | DebugRequest | DebugResponse
+
+type HeleniumWriterMsg = String
 
 data HeleniumState = 
 	HeleniumState {
@@ -241,7 +243,7 @@ wrapTest t = do
 -- Logging
 -------------------------------------------------------------------------------
 
-logMsg :: HeleniumWriterLevel -> String -> HeleniumM ()
+logMsg :: HeleniumWriterLevel -> HeleniumWriterMsg -> HeleniumM ()
 logMsg level msg = do
 	time <- liftIO $ Time.getCurrentTime
 	tell [(time, level, msg)]
