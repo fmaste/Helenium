@@ -129,6 +129,7 @@ type HeleniumBrowserVersion = String
 
 data HeleniumBrowserPlatform = Windows| XP | Vista | Mac | Linux | Unix | Any
 
+-- TODO: Move to the reader after moving out the config from the tests.
 data HeleniumCapability =
 	JavascriptEnabled |
 	TakesScreenshot |
