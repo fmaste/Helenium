@@ -104,7 +104,7 @@ data HeleniumReader =
 
 type HeleniumWriter = [(Time.UTCTime, HeleniumWriterLevel, String)]
 
-data HeleniumWriterLevel = Info | Debug
+data HeleniumWriterLevel = Info | Debug | DebugRequest | DebugResponse
 
 data HeleniumState = 
 	HeleniumState {
@@ -224,7 +224,7 @@ showError e = putStrLn $ "An error ocurred: " ++ e
 
 showWriter :: HeleniumWriter -> IO ()
 -- TODO: Do something with message type!
-showWriter w = mapM_ (\(time, level, m) -> putStrLn m) w
+showWriter w = mapM_ putStrLn (logGenerator w)
 
 wrapTest :: HeleniumM () -> IO (HeleniumM ())
 wrapTest t = do
@@ -238,10 +238,25 @@ wrapTest t = do
 		} `catchError` (\e -> do {disconnect; throwError e})
 		disconnect
 
+-- Logging
+-------------------------------------------------------------------------------
+
 logMsg :: HeleniumWriterLevel -> String -> HeleniumM ()
 logMsg level msg = do
 	time <- liftIO $ Time.getCurrentTime
 	tell [(time, level, msg)]
+
+logGenerator :: HeleniumWriter -> [String]
+logGenerator logs = map f logs where
+	f (t, l, m) = (showLogTime t) ++ " - " ++ (showLogLevel l) ++ " - " ++ m
+
+showLogTime :: Time.UTCTime -> String
+showLogTime t = show t
+	
+showLogLevel Info = "INFO"
+showLogLevel Debug = "DEBUG" 
+showLogLevel DebugRequest = "REQUEST"
+showLogLevel DebugResponse = "RESPONSE"
 
 -- Commands
 -------------------------------------------------------------------------------
@@ -632,14 +647,12 @@ callSelenium req = do
 	httpReq <- makeRequest req
 	reader <- ask
 	when (debugHttp reader) $ 
-		liftIO $ 
-			putStr (show httpReq) >>
-			putStrLn (HTTP.rqBody httpReq)
+		logMsg DebugRequest $
+			"\n" ++ (show httpReq) ++ "\n" ++ (HTTP.rqBody httpReq)
 	httpRes <- sendRequest httpReq
 	when (debugHttp reader) $
-		liftIO $
-			putStr (show httpRes) >>
-			putStrLn (HTTP.rspBody httpRes)
+		logMsg DebugResponse $
+			"\n" ++ (show httpRes) ++ "\n" ++ (HTTP.rspBody httpRes)
 	processResponse httpRes
 
 sendRequest :: HTTP.Request String -> HeleniumM (HTTP.Response String)
