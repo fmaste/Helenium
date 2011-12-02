@@ -243,8 +243,8 @@ wrapTest t = do
 
 logMsg :: HeleniumWriterLevel -> HeleniumWriterMsg -> HeleniumM ()
 logMsg level msg = do
-	time <- liftIO $ Time.getCurrentTime
-	tell [(time, level, msg)]
+	t <- liftIO $ Time.getCurrentTime
+	tell [(t, level, msg)]
 
 logGenerator :: HeleniumWriter -> [String]
 logGenerator logs = map f logs where
