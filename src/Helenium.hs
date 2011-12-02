@@ -63,7 +63,6 @@ import qualified Network.HTTP as HTTP
 import qualified Network.HTTP.Stream as Stream
 import qualified Text.JSON as JSON
 import System (getArgs)
-import System.Console.GetOpt
 import qualified System.Posix.Unistd as Sys
 
 -------------------------------------------------------------------------------
