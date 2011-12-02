@@ -153,35 +153,12 @@ data HeleniumCapability =
 -- Test runner.
 -------------------------------------------------------------------------------
 
-{-
-data Options = ServerURI String | BrowserName HeleniumBrowserName
-
-browserStringToBrowserName :: String -> HeleniumBrowserName
-browserStringToBrowserName "chrome" = Chrome
-browserStringToBrowserName "firefox" = Firefox
-browserStringToBrowserName "htmlunit" = HtmlUnit
-browserStringToBrowserName "internet explorer" = IE
-browserStringToBrowserName "iphone" = IPhone
-
-options :: [OptDescr Options]
-options = [
-	Option 
-		['s'] 
-		["server"] 
-		(ReqArg ServerURI "URI") 
-		"server URI",
-	Option 
-		['b'] 
-		["browser"]
-		(ReqArg (\s -> BrowserName $ browserStringToBrowserName s) "BROWSER NAME")
-		"browser name"]
-
 runTest :: HeleniumM () -> IO ()
 runTest t = do
 	args <- getArgs
-	let (args', nonOpts, errMsgs) = getOpt RequireOrder options args
-	when (not $ null nonOpts) (error $ "Unrecognized arguments: " ++ unwords nonOpts)
-	when (not $ null errMsgs) (error $ usageInfo "Usage: " options) -- TODO: Show errMsgs
+	when (null args) (error $ "No paramaters. Server and browser are needed.")
+	when (not $ any (isPrefixOf "--server=") args) (error $ "No --server parameter.")
+	when (not $ any (isPrefixOf "--browser=") args) (error $ "No --browser parameter.")
 	let config = HeleniumReader {
 		name = "Test",
 		server = "http://127.0.0.1:9515",
@@ -193,16 +170,31 @@ runTest t = do
 		timeoutElement = 5000,
 		screenshotPath = "/home/developer"
 	}
-	let config' = foldl updateConfig config args'
+	let config' = foldl updateConfig config args
+	when (isNothing $ URI.parseURI $ server config') (error "Not a valid server URL.")
+	-- TODO: Check valid browser name! The browser in config is lazy (not evaluated).
 	runTest' config' t
-	
-updateConfig :: HeleniumReader -> Options -> HeleniumReader
-updateConfig c (ServerURI s) = c {server = s}
-updateConfig c (BrowserName b) = c {browser = HeleniumBrowser b "16" Linux}
--}
 
-runTest :: HeleniumReader -> HeleniumM () -> IO ()
-runTest r t = do
+browserStringToBrowserName :: String -> HeleniumBrowserName
+browserStringToBrowserName "chrome" = Chrome
+browserStringToBrowserName "firefox" = Firefox
+browserStringToBrowserName "htmlunit" = HtmlUnit
+browserStringToBrowserName "internet explorer" = IE
+browserStringToBrowserName "iphone" = IPhone
+browserStringToBrowserName b = error $ b ++ " is not a valid browser."
+
+updateConfig :: HeleniumReader -> String -> HeleniumReader
+updateConfig r c
+	| isPrefixOf "--server=" c && length c > 9 = 
+		r {server = drop 9 c}
+	| isPrefixOf "--browser=" c && length c > 10 = 
+		r {browser = HeleniumBrowser (browserStringToBrowserName $ drop 10 c) "16" Linux}
+	| c == "--debugHttp" = 
+		r {debugHttp = True}
+	| otherwise = error $ c ++ " is not a valid parameter."
+
+runTest' :: HeleniumReader -> HeleniumM () -> IO ()
+runTest' r t = do
 	-- If the URI has a trailing '/', remove it..
 	let r' = if (last $ server r) == '/'
 		then r {server = (init $ server r)}
@@ -724,6 +716,7 @@ makeRequest (Request rs rm rp) = do
 	headers <- makeRequestHeaders rm
 	body <- makeRequestBody rm
 	let req = HTTP.Request {
+		-- TODO: Check valid URL
 		HTTP.rqURI = fromJust $ URI.parseURI uri,
 		HTTP.rqMethod = method,
 		HTTP.rqHeaders = headers,

@@ -2,23 +2,10 @@ module Test.Login where
 
 import Helenium
 
-main = do
-	let config = HeleniumReader {
-		name = "Login",
-		server = "http://selenium-server-dev.local",
-		-- server = "http://127.0.0.1:4444/wd/hub",
-		browser = HeleniumBrowser Firefox "16" Linux,
-		logTime = True,
-		debugHttp = False,
-		debugTime = False,
-		timeoutTest = 0,
-		timeoutElement = 3000,
-		screenshotPath = "/home/developer"
-	}
-	runTest config test
+main = runTest test
 
 test = do
-	goTo "http://www.aaa.com"
+	goTo "http://www.olx.com"
 	-- Not supported on linux.
 	-- takeScreenshot "login"
 	login
@@ -37,7 +24,7 @@ test = do
 	deleteCookieByName "login"
 	refresh
 	login
-	
+
 login = do
 	echo "Click on the Sign in link."
 	signInLink <- getElementByText "Sign in"

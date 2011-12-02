@@ -1,5 +1,10 @@
 #!/bin/bash
 
 cd src
-runghc Test.$1
+
+test="$1"
+
+shift
+
+runghc Test.$test $@
 
