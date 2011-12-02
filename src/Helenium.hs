@@ -7,6 +7,7 @@ module Helenium (
 	HeleniumBrowserPlatform (..),
 	runTest,
 	echo,
+	getCurrentTime,
 	sleep,
 	times,
 	assertEqual,
@@ -264,6 +265,11 @@ showLogLevel DebugResponse = "RESPONSE"
 echo :: String -> HeleniumM ()
 echo m = do
 	logMsg Info m
+
+getCurrentTime :: HeleniumM String
+getCurrentTime = do
+	t <- liftIO Time.getCurrentTime
+	return $ show t
 
 -- Suspends the current thread for a given number of seconds.
 sleep :: Int -> HeleniumM ()
