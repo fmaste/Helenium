@@ -129,20 +129,6 @@ type HeleniumBrowserVersion = String
 
 data HeleniumBrowserPlatform = Windows| XP | Vista | Mac | Linux | Unix | Any
 
-data HeleniumCapability =
-	JavascriptEnabled |
-	TakesScreenshot |
-	HandlesAlerts |
-	DatabaseEnabled |
-	LocationContextEnabled |
-	ApplicationCacheEnabled |
-	BrowserConnectionEnabled |
-	CssSelectorsEnabled |
-	WebStorageEnabled |
-	Rotatable |
-	AcceptSslCerts |
-	NativeEvents
-
 -- Test runner.
 -------------------------------------------------------------------------------
 
@@ -336,6 +322,20 @@ heleniumBrowserNameKey Firefox = "firefox"
 heleniumBrowserNameKey HtmlUnit = "htmlunit"
 heleniumBrowserNameKey IE = "internet explorer"
 heleniumBrowserNameKey IPhone = "iphone"
+
+data HeleniumCapability =
+	JavascriptEnabled |
+	TakesScreenshot |
+	HandlesAlerts |
+	DatabaseEnabled |
+	LocationContextEnabled |
+	ApplicationCacheEnabled |
+	BrowserConnectionEnabled |
+	CssSelectorsEnabled |
+	WebStorageEnabled |
+	Rotatable |
+	AcceptSslCerts |
+	NativeEvents
 
 heleniumCapabilityKey :: HeleniumCapability -> String
 heleniumCapabilityKey JavascriptEnabled = "javascriptEnabled"
