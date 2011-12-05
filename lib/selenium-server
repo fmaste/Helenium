@@ -1,0 +1,4 @@
+#!/bin/bash
+
+java -Dwebdriver.chrome.driver=chromedriver/16.0.902.0/chromedriver-linux32 -jar selenium-server-standalone-2.14.0.jar
+
