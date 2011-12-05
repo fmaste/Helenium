@@ -10,13 +10,5 @@ test = do
 	searchInput <- getElementById "lst-ib"
 	sendKeysToElement searchInput "google"
 	sleep 5
-	goTo "http://www.amazon.com"
-	back
-	forward
-	refresh
-	url <- getUrl
-	assertEqual "http://www.amazon.com/" url
-	title <- getTitle
-	assertPrefix "Amazon.com" title
 	return ()
 
