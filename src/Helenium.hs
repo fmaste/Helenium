@@ -401,8 +401,8 @@ getActiveElement = do
 
 -- Search for an element on the page, starting from the document root.
 -- Each locator must return the first matching element located in the DOM.
-getElementBy :: String -> String -> HeleniumM Response
-getElementBy using value = do
+getResponseElementBy :: String -> String -> HeleniumM Response
+getResponseElementBy using value = do
 	let body = JSON.toJSObject [
 		("using", JSON.toJSString using),
 		("value", JSON.toJSString value)]
@@ -411,27 +411,27 @@ getElementBy using value = do
 	return ans
 
 getResponseElementById :: String -> HeleniumM Response
-getResponseElementById id = getElementBy "id" id
+getResponseElementById id = getResponseElementBy "id" id
 
 getResponseElementByName :: String -> HeleniumM Response
-getResponseElementByName name = getElementBy "name" name
+getResponseElementByName name = getResponseElementBy "name" name
 
 getResponseElementByClassName :: String -> HeleniumM Response
-getResponseElementByClassName className = getElementBy "class name" className
+getResponseElementByClassName className = getResponseElementBy "class name" className
 
 getResponseElementByCssSelector :: String -> HeleniumM Response
-getResponseElementByCssSelector css = getElementBy "css selector" css
+getResponseElementByCssSelector css = getResponseElementBy "css selector" css
 
 -- Returns an anchor element whose visible text matches the search value.
 getResponseElementByText :: String -> HeleniumM Response
-getResponseElementByText text = getElementBy "link text" text
+getResponseElementByText text = getResponseElementBy "link text" text
 
 -- Returns an anchor element whose visible text partially matches the search value.
 getResponseElementByPartialText :: String -> HeleniumM Response
-getResponseElementByPartialText text = getElementBy "partial link text" text
+getResponseElementByPartialText text = getResponseElementBy "partial link text" text
 
 getResponseElementByXPath :: String -> HeleniumM Response
-getResponseElementByXPath x = getElementBy "xpath" x
+getResponseElementByXPath x = getResponseElementBy "xpath" x
 
 processElementResponse :: Response -> HeleniumM String
 processElementResponse ans = do
