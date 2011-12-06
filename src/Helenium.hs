@@ -574,7 +574,7 @@ sendKeysToElement e ks = do
 
 getElementIsEnabled :: String -> HeleniumM Bool
 getElementIsEnabled e = do
-	ans <- callSelenium $ Request True Get $ "/element/" ++ e ++ "/displayed"
+	ans <- callSelenium $ Request True Get $ "/element/" ++ e ++ "/enabled"
 	(status, value) <- processResponseBody $ responseHTTPBody ans
 	case value of
 		JSON.JSBool bool -> return bool
@@ -596,7 +596,7 @@ assertElementIsNotEnabled e = do
 
 getElementIsDisplayed :: String -> HeleniumM Bool
 getElementIsDisplayed e = do
-	ans <- callSelenium $ Request True Get $ "/element/" ++ e ++ "/enabled"
+	ans <- callSelenium $ Request True Get $ "/element/" ++ e ++ "/displayed"
 	(status, value) <- processResponseBody $ responseHTTPBody ans
 	case value of
 		JSON.JSBool bool -> return bool
