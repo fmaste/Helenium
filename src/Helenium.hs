@@ -410,6 +410,29 @@ getElementBy using value = do
 	ans <- callSelenium $ Request True (Post $ JSON.encode body) "/element"
 	return ans
 
+getResponseElementById :: String -> HeleniumM Response
+getResponseElementById id = getElementBy "id" id
+
+getResponseElementByName :: String -> HeleniumM Response
+getResponseElementByName name = getElementBy "name" name
+
+getResponseElementByClassName :: String -> HeleniumM Response
+getResponseElementByClassName className = getElementBy "class name" className
+
+getResponseElementByCssSelector :: String -> HeleniumM Response
+getResponseElementByCssSelector css = getElementBy "css selector" css
+
+-- Returns an anchor element whose visible text matches the search value.
+getResponseElementByText :: String -> HeleniumM Response
+getResponseElementByText text = getElementBy "link text" text
+
+-- Returns an anchor element whose visible text partially matches the search value.
+getResponseElementByPartialText :: String -> HeleniumM Response
+getResponseElementByPartialText text = getElementBy "partial link text" text
+
+getResponseElementByXPath :: String -> HeleniumM Response
+getResponseElementByXPath x = getElementBy "xpath" x
+
 processElementResponse :: Response -> HeleniumM String
 processElementResponse ans = do
 	(status, value) <- processResponseBody $ responseHTTPBody ans 
@@ -421,39 +444,39 @@ processElementResponse ans = do
 
 getElementById :: String -> HeleniumM String
 getElementById id = do
-	ans <- getElementBy "id" id
+	ans <- getResponseElementById id
 	processElementResponse ans
 
 getElementByName :: String -> HeleniumM String
 getElementByName name = do
-	ans <- getElementBy "name" name
+	ans <- getResponseElementByName name
 	processElementResponse ans
 
 getElementByClassName :: String -> HeleniumM String
 getElementByClassName className = do
-	ans <- getElementBy "class name" className
+	ans <- getResponseElementByClassName className
 	processElementResponse ans
 
 getElementByCssSelector :: String -> HeleniumM String
 getElementByCssSelector css = do
-	ans <- getElementBy "css selector" css
+	ans <- getResponseElementByCssSelector css
 	processElementResponse ans
 
 -- Returns an anchor element whose visible text matches the search value.
 getElementByText :: String -> HeleniumM String
 getElementByText text = do
-	ans <- getElementBy "link text" text
+	ans <- getResponseElementByText text
 	processElementResponse ans
 
 -- Returns an anchor element whose visible text partially matches the search value.
 getElementByPartialText :: String -> HeleniumM String
 getElementByPartialText text = do
-	ans <- getElementBy "partial link text" text
+	ans <- getResponseElementByPartialText text
 	processElementResponse ans
 
 getElementByXPath :: String -> HeleniumM String
 getElementByXPath x = do
-	ans <- getElementBy "xpath" x
+	ans <- getResponseElementByXPath x
 	processElementResponse ans
 
 processElementDoesNotExistsResponse :: Response -> HeleniumM ()
@@ -465,37 +488,37 @@ processElementDoesNotExistsResponse ans = do
 
 assertElementDoesNotExistsById :: String -> HeleniumM ()
 assertElementDoesNotExistsById id = do
-	ans <- getElementBy "id" id
+	ans <- getResponseElementById id
 	processElementDoesNotExistsResponse ans
 
 assertElementDoesNotExistsByName :: String -> HeleniumM ()
 assertElementDoesNotExistsByName name = do
-	ans <- getElementBy "name" name
+	ans <- getResponseElementById name
 	processElementDoesNotExistsResponse ans
 
 assertElementDoesNotExistsByClassName :: String -> HeleniumM ()
 assertElementDoesNotExistsByClassName className = do
-	ans <- getElementBy "class name" className
+	ans <- getResponseElementByClassName className
 	processElementDoesNotExistsResponse ans
 
 assertElementDoesNotExistsByCssSelector :: String -> HeleniumM ()
 assertElementDoesNotExistsByCssSelector css = do
-	ans <- getElementBy "css selector" css
+	ans <- getResponseElementByCssSelector css
 	processElementDoesNotExistsResponse ans
 
 assertElementDoesNotExistsByText :: String -> HeleniumM ()
 assertElementDoesNotExistsByText text = do
-	ans <- getElementBy "link text" text
+	ans <- getResponseElementByText text
 	processElementDoesNotExistsResponse ans
 
 assertElementDoesNotExistsByPartialText :: String -> HeleniumM ()
 assertElementDoesNotExistsByPartialText text = do
-	ans <- getElementBy "partial link text" text
+	ans <- getResponseElementByPartialText text
 	processElementDoesNotExistsResponse ans
 
 assertElementDoesNotExistsByXPath :: String -> HeleniumM ()
 assertElementDoesNotExistsByXPath x = do
-	ans <- getElementBy "xpath" x
+	ans <- getResponseElementByXPath x
 	processElementDoesNotExistsResponse ans
 
 -- Click on an element.
