@@ -1,6 +1,7 @@
 module Helenium (
 	runTest,
 	echo,
+	-- TODO: getEpoch as an integer!
 	getCurrentTime,
 	sleep,
 	times,
