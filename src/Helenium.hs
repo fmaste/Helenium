@@ -10,6 +10,7 @@ module Helenium (
 	assertGreater,
 	assertLessOrEqual,
 	assertGreaterOrEqual,
+	substr,
 	assertPrefix,
 	assertSuffix,
 	assertInfix,
@@ -223,6 +224,16 @@ assertLessOrEqual a b = assert "less" (<) a b
 
 assertGreaterOrEqual :: (Ord x, Show x) => x -> x -> HeleniumM ()
 assertGreaterOrEqual a b = assert "greater" (>) a b
+
+substr :: String -> Int -> Int -> HeleniumM String
+substr s from to = do
+	let s' = drop from s
+	let s'' = if to == 0
+			then s'
+			else if to > 0
+				then take to s'
+				else take ((length s') + to) s'
+	return s''
 
 assertPrefix :: String -> String -> HeleniumM ()
 assertPrefix a b = assert "prefix" isPrefixOf a b
