@@ -48,6 +48,8 @@ module Helenium (
 	assertElementIsNotEnabled,
 	assertElementIsDisplayed,
 	assertElementIsNotDisplayed,
+	assertElementIsSelected,
+	assertElementIsNotSelected,
 	getCookieValue,
 	getCookieExpiresEpoch,
 	deleteAllCookies,
@@ -614,6 +616,28 @@ assertElementIsNotDisplayed e = do
 	displayed <- getElementIsDisplayed e
 	if displayed
 		then throwError "Assert element is not displayed failed."
+		else return ()
+
+getElementIsSelected :: String -> HeleniumM Bool
+getElementIsSelected e = do
+	ans <- callSelenium $ Request True Get $ "/element/" ++ e ++ "/selected"
+	(status, value) <- processResponseBody $ responseHTTPBody ans
+	case value of
+		JSON.JSBool bool -> return bool
+		_ -> throwError "Error reading element selected property, not a valid JSON response."
+
+assertElementIsSelected :: String -> HeleniumM ()
+assertElementIsSelected e = do
+	selected <- getElementIsSelected e
+	if selected
+		then return ()
+		else throwError "Assert element is selected failed."
+
+assertElementIsNotSelected :: String -> HeleniumM ()
+assertElementIsNotSelected e = do
+	selected <- getElementIsSelected e
+	if selected
+		then throwError "Assert element is not selected failed."
 		else return ()
 
 getCookies :: HeleniumM [JSON.JSValue]
