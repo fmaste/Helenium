@@ -42,6 +42,10 @@ module Helenium (
 	submitElement,
 	sendKeys,
 	sendKeysToElement,
+	assertElementIsEnabled,
+	assertElementIsNotEnabled,
+	assertElementIsDisplayed,
+	assertElementIsNotDisplayed,
 	getCookieValue,
 	getCookieExpiresEpoch,
 	deleteAllCookies,
@@ -555,6 +559,50 @@ sendKeysToElement e ks = do
                 ("value", JSON.JSArray $ map JSON.showJSON ks)]
 	callSelenium $ Request True (Post $ JSON.encode body) $ "/element/" ++ e ++ "/value"
 	return ()
+
+getElementIsEnabled :: String -> HeleniumM Bool
+getElementIsEnabled e = do
+	ans <- callSelenium $ Request True Get $ "/element/" ++ e ++ "/displayed"
+	(status, value) <- processResponseBody $ responseHTTPBody ans
+	case value of
+		JSON.JSBool bool -> return bool
+		_ -> throwError "Error reading element enabled property, not a valid JSON response."
+
+assertElementIsEnabled :: String -> HeleniumM ()
+assertElementIsEnabled e = do
+	enabled <- getElementIsEnabled e
+	if enabled
+		then return ()
+		else throwError "Assert element is enabled failed."
+	
+assertElementIsNotEnabled :: String -> HeleniumM ()
+assertElementIsNotEnabled e = do
+	enabled <- getElementIsEnabled e
+	if enabled
+		then throwError "Assert element is not enabled failed."
+		else return ()
+
+getElementIsDisplayed :: String -> HeleniumM Bool
+getElementIsDisplayed e = do
+	ans <- callSelenium $ Request True Get $ "/element/" ++ e ++ "/enabled"
+	(status, value) <- processResponseBody $ responseHTTPBody ans
+	case value of
+		JSON.JSBool bool -> return bool
+		_ -> throwError "Error reading element displayed property, not a valid JSON response."	
+
+assertElementIsDisplayed :: String -> HeleniumM ()
+assertElementIsDisplayed e = do
+	displayed <- getElementIsDisplayed e
+	if displayed
+		then return ()
+		else throwError "Assert element is displayed failed."
+
+assertElementIsNotDisplayed :: String -> HeleniumM ()
+assertElementIsNotDisplayed e = do
+	displayed <- getElementIsDisplayed e
+	if displayed
+		then throwError "Assert element is not displayed failed."
+		else return ()
 
 getCookies :: HeleniumM [JSON.JSValue]
 getCookies = do
