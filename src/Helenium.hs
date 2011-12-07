@@ -4,6 +4,7 @@ module Helenium (
 	-- TODO: getEpoch as an integer!
 	getCurrentTime,
 	sleep,
+	for,
 	times,
 	assertEqual,
 	assertLess,
@@ -202,6 +203,9 @@ sleep :: Int -> HeleniumM ()
 sleep ms = do
 	liftIO $ Sys.sleep ms
 	return ()
+
+for :: [a] -> (a -> HeleniumM b) -> HeleniumM ()
+for as f = forM_ as f
 
 times :: Int -> HeleniumM () -> HeleniumM ()
 times n t = replicateM_ n t
