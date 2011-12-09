@@ -10,6 +10,8 @@ module Helenium.Network (
 	callSelenium
 ) where
 
+-------------------------------------------------------------------------------
+
 import qualified Helenium.Base as H
 import qualified Helenium.Log as HL
 import qualified Network.URI as URI

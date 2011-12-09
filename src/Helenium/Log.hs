@@ -3,11 +3,15 @@ module Helenium.Log (
 	logGenerator
 ) where
 
+-------------------------------------------------------------------------------
+
 import qualified Helenium.Base as H
 import Data.Maybe
 import Control.Monad.Error
 import Control.Monad.RWS.Strict
 import qualified Data.Time as Time
+
+-------------------------------------------------------------------------------
 
 logMsg :: H.HeleniumWriterLevel -> H.HeleniumWriterMsg -> H.HeleniumM ()
 logMsg level msg = do

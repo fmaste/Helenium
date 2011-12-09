@@ -2,6 +2,8 @@ module Helenium.Runner (
 	runTest
 ) where
 
+-------------------------------------------------------------------------------
+
 import qualified Helenium.Base as H
 import qualified Helenium.Log as HL
 import qualified Helenium.Network as HN
@@ -10,6 +12,8 @@ import Control.Monad.RWS.Strict
 import System (getArgs)
 import Data.List (find, isPrefixOf, isSuffixOf, isInfixOf)
 import qualified Text.JSON as JSON
+
+-------------------------------------------------------------------------------
 
 -- Create a new session.
 connect :: H.HeleniumM ()
@@ -25,7 +29,7 @@ connect = do
 	let capabilitiesJson = JSON.makeObj capabilitiesArray'
 	let bodyJson = JSON.makeObj [("desiredCapabilities", capabilitiesJson)]
 	ans <- HN.callSelenium $ HN.Request False (HN.Post $ JSON.encode bodyJson) "/session"
-	-- Return a redirect with header:
+	-- Returns a redirect with header:
 	-- Location: /session/bf8deb5adc6e61e87c09913f78e5c82c
 	let location = HN.responseHTTPHeaderLocation $ HN.responseHTTPHeaders ans
 	case location of
