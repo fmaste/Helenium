@@ -27,7 +27,11 @@ isUriValid uri = isJust $ URI.parseURI uri
 
 -------------------------------------------------------------------------------
 
-data Request = Request RequestStateful RequestMethod RequestPath
+data Request = Request {
+	isStateful :: RequestStateful,
+	method :: RequestMethod,
+	path :: RequestPath
+}
 
 type RequestStateful = Bool
 
