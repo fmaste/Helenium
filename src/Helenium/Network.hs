@@ -1,4 +1,5 @@
 module Helenium.Network (
+	isUriValid,
 	Request (..),
 	RequestStateful,
 	RequestMethod (..),
@@ -18,6 +19,11 @@ import qualified Network.HTTP.Stream as Stream
 import Data.Maybe
 import Control.Monad.Error
 import Control.Monad.RWS.Strict
+
+-------------------------------------------------------------------------------
+
+isUriValid :: String -> Bool
+isUriValid uri = isJust $ URI.parseURI uri
 
 -------------------------------------------------------------------------------
 

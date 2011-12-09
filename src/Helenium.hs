@@ -72,9 +72,6 @@ import qualified Data.Time as Time
 import Data.List (find, isPrefixOf, isSuffixOf, isInfixOf)
 import Control.Monad.Error
 import Control.Monad.RWS.Strict
-import qualified Network.URI as URI
-import qualified Network.HTTP as HTTP
-import qualified Network.HTTP.Stream as Stream
 import qualified Text.JSON as JSON
 import System (getArgs)
 import qualified System.Posix.Unistd as Sys
@@ -100,7 +97,7 @@ runTest t = do
 		H.screenshotPath = "/home/developer"
 	}
 	let config' = foldl updateConfig config args
-	when (isNothing $ URI.parseURI $ H.server config') (error "Not a valid server URL.")
+	when (not $ isUriValid $ H.server config') (error "Not a valid server URL.")
 	-- TODO: Check valid browser name! The browser in config is lazy (not evaluated).
 	runTest' config' t
 
