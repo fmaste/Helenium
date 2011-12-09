@@ -54,8 +54,8 @@ type ResponseHTTPBody = String
 
 callSelenium :: Request -> H.HeleniumM Response
 callSelenium req = do
+	reader <- ask	
 	httpReq <- makeRequest req
-	reader <- ask
 	when (H.debugHttp reader) $ 
 		HL.logMsg H.DebugRequest $
 			"\n" ++ (show httpReq) ++ "\n" ++ (HTTP.rqBody httpReq)
@@ -81,7 +81,6 @@ processResponse res = do
 	let code = x * 100 + y * 10 + z * 1
 	let reason = HTTP.rspReason res -- The "Ok", "Found" that comes after the HTTP code
 	processResponseCodes (x, y, z) reason
-	-- Do something with the haders??
 	headers <- processHeaders res
 	let body = HTTP.rspBody res -- The body string
 	return (Response (x,y,z) reason headers body)

@@ -64,8 +64,8 @@ module Helenium (
 -------------------------------------------------------------------------------
 
 import qualified Helenium.Base as H
-import qualified Helenium.Network as HN
 import qualified Helenium.Log as HL
+import qualified Helenium.Network as HN
 import Data.Maybe
 import Data.Either
 import qualified Data.Time as Time
