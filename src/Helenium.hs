@@ -71,7 +71,7 @@ import Helenium.Network (
 	callSelenium, 
 	Response (..),
 	ResponseHTTPHeaders (..))
-import Helenium.Log
+import qualified Helenium.Log as HL
 import Data.Maybe
 import Data.Either
 import qualified Data.Time as Time
@@ -157,13 +157,13 @@ showError e = putStrLn $ "An error ocurred: " ++ e
 
 showWriter :: H.HeleniumWriter -> IO ()
 -- TODO: Do something with message type!
-showWriter w = mapM_ putStrLn (logGenerator w)
+showWriter w = mapM_ putStrLn (HL.logGenerator w)
 
 wrapTest :: H.HeleniumM () -> IO (H.HeleniumM ())
 wrapTest t = do
 	return $ do
 		reader <- ask
-		logMsg H.Info ("Running test: " ++ (H.name reader))
+		HL.logMsg H.Info ("Running test: " ++ (H.name reader))
 		connect
 		do {
 			setElementTimeout $ H.timeoutElement reader;
@@ -176,7 +176,7 @@ wrapTest t = do
 
 echo :: String -> H.HeleniumM ()
 echo m = do
-	logMsg H.Info m
+	HL.logMsg H.Info m
 
 getCurrentTime :: H.HeleniumM String
 getCurrentTime = do
