@@ -1,7 +1,6 @@
 module Helenium.Network (
 	isUriValid,
 	Request (..),
-	RequestStateful,
 	RequestMethod (..),
 	RequestPath,
 	Response (..),
@@ -28,12 +27,10 @@ isUriValid uri = isJust $ URI.parseURI uri
 -------------------------------------------------------------------------------
 
 data Request = Request {
-	isStateful :: RequestStateful,
+	isStateful :: Bool,
 	method :: RequestMethod,
 	path :: RequestPath
 }
-
-type RequestStateful = Bool
 
 data RequestMethod = Get | Post String | Delete
 
@@ -118,7 +115,7 @@ makeRequest (Request rs rm rp) = do
 	}
 	return req
 
-makeRequestUri :: RequestStateful -> RequestPath -> H.HeleniumM String
+makeRequestUri :: Bool -> RequestPath -> H.HeleniumM String
 makeRequestUri rs rp = do
 	state <- get
 	reader <- ask
