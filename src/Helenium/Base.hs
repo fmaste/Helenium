@@ -11,7 +11,8 @@ module Helenium.Base (
 	HeleniumBrowserPlatform (..),
 	HeleniumWriterLevel (..),
 	HeleniumWriterMsg,
-	HeleniumCapability (..)
+	HeleniumCapability (..),
+	heleniumCapabilityKey
 ) where
 
 -------------------------------------------------------------------------------
@@ -103,4 +104,18 @@ data HeleniumCapability =
 	Rotatable |
 	AcceptSslCerts |
 	NativeEvents
+
+heleniumCapabilityKey :: HeleniumCapability -> String
+heleniumCapabilityKey JavascriptEnabled = "javascriptEnabled"
+heleniumCapabilityKey TakesScreenshot = "takesScreenshot"
+heleniumCapabilityKey HandlesAlerts = "handlesAlerts"
+heleniumCapabilityKey DatabaseEnabled = "databaseEnabled"
+heleniumCapabilityKey LocationContextEnabled = "locationContextEnabled"
+heleniumCapabilityKey ApplicationCacheEnabled = "applicationCacheEnabled"
+heleniumCapabilityKey BrowserConnectionEnabled = "browserConnectionEnabled"
+heleniumCapabilityKey CssSelectorsEnabled = "cssSelectorsEnabled"
+heleniumCapabilityKey WebStorageEnabled = "webStorageEnabled"
+heleniumCapabilityKey Rotatable = "rotatable"
+heleniumCapabilityKey AcceptSslCerts = "acceptSslCerts"
+heleniumCapabilityKey NativeEvents = "nativeEvents"
 

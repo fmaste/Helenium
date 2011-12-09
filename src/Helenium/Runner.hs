@@ -17,20 +17,6 @@ heleniumBrowserNameKey H.HtmlUnit = "htmlunit"
 heleniumBrowserNameKey H.IE = "internet explorer"
 heleniumBrowserNameKey H.IPhone = "iphone"
 
-heleniumCapabilityKey :: H.HeleniumCapability -> String
-heleniumCapabilityKey H.JavascriptEnabled = "javascriptEnabled"
-heleniumCapabilityKey H.TakesScreenshot = "takesScreenshot"
-heleniumCapabilityKey H.HandlesAlerts = "handlesAlerts"
-heleniumCapabilityKey H.DatabaseEnabled = "databaseEnabled"
-heleniumCapabilityKey H.LocationContextEnabled = "locationContextEnabled"
-heleniumCapabilityKey H.ApplicationCacheEnabled = "applicationCacheEnabled"
-heleniumCapabilityKey H.BrowserConnectionEnabled = "browserConnectionEnabled"
-heleniumCapabilityKey H.CssSelectorsEnabled = "cssSelectorsEnabled"
-heleniumCapabilityKey H.WebStorageEnabled = "webStorageEnabled"
-heleniumCapabilityKey H.Rotatable = "rotatable"
-heleniumCapabilityKey H.AcceptSslCerts = "acceptSslCerts"
-heleniumCapabilityKey H.NativeEvents = "nativeEvents"
-
 -- Create a new session.
 connect :: H.HeleniumM ()
 connect = do
@@ -39,7 +25,7 @@ connect = do
 	let b = heleniumBrowserNameKey $ H.browserName $ H.browser reader
 	let capabilities = H.serverCapabilities state
 	let capabilitiesArray = map 
-		(\c -> (heleniumCapabilityKey c, JSON.JSBool True)) 
+		(\c -> (H.heleniumCapabilityKey c, JSON.JSBool True)) 
 		capabilities
 	let capabilitiesArray' = capabilitiesArray ++ [("browserName", JSON.showJSON b)]
 	let capabilitiesJson = JSON.makeObj capabilitiesArray'
