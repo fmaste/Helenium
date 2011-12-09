@@ -12,7 +12,7 @@ module Helenium.Network (
 ) where
 
 import qualified Helenium.Base as H
-import Helenium.Log
+import qualified Helenium.Log as HL
 import qualified Network.URI as URI
 import qualified Network.HTTP as HTTP
 import qualified Network.HTTP.Stream as Stream
@@ -56,11 +56,11 @@ callSelenium req = do
 	httpReq <- makeRequest req
 	reader <- ask
 	when (H.debugHttp reader) $ 
-		logMsg H.DebugRequest $
+		HL.logMsg H.DebugRequest $
 			"\n" ++ (show httpReq) ++ "\n" ++ (HTTP.rqBody httpReq)
 	httpRes <- sendRequest httpReq
 	when (H.debugHttp reader) $
-		logMsg H.DebugResponse $
+		HL.logMsg H.DebugResponse $
 			"\n" ++ (show httpRes) ++ "\n" ++ (HTTP.rspBody httpRes)
 	processResponse httpRes
 
