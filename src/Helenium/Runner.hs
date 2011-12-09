@@ -11,18 +11,12 @@ import System (getArgs)
 import Data.List (find, isPrefixOf, isSuffixOf, isInfixOf)
 import qualified Text.JSON as JSON
 
-heleniumBrowserNameKey H.Chrome = "chrome"
-heleniumBrowserNameKey H.Firefox = "firefox"
-heleniumBrowserNameKey H.HtmlUnit = "htmlunit"
-heleniumBrowserNameKey H.IE = "internet explorer"
-heleniumBrowserNameKey H.IPhone = "iphone"
-
 -- Create a new session.
 connect :: H.HeleniumM ()
 connect = do
 	state <- get
 	reader <- ask
-	let b = heleniumBrowserNameKey $ H.browserName $ H.browser reader
+	let b = H.heleniumBrowserNameKey $ H.browserName $ H.browser reader
 	let capabilities = H.serverCapabilities state
 	let capabilitiesArray = map 
 		(\c -> (H.heleniumCapabilityKey c, JSON.JSBool True)) 

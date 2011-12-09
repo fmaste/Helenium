@@ -9,6 +9,7 @@ module Helenium.Base (
 	HeleniumBrowserName (..),
 	HeleniumBrowserVersion,
 	HeleniumBrowserPlatform (..),
+	heleniumBrowserNameKey,
 	HeleniumWriterLevel (..),
 	HeleniumWriterMsg,
 	HeleniumCapability (..),
@@ -89,6 +90,12 @@ data HeleniumBrowserName = Chrome | Firefox | HtmlUnit | IE | IPhone
 type HeleniumBrowserVersion = String
 
 data HeleniumBrowserPlatform = Windows| XP | Vista | Mac | Linux | Unix | Any
+
+heleniumBrowserNameKey Chrome = "chrome"
+heleniumBrowserNameKey Firefox = "firefox"
+heleniumBrowserNameKey HtmlUnit = "htmlunit"
+heleniumBrowserNameKey IE = "internet explorer"
+heleniumBrowserNameKey IPhone = "iphone"
 
 --- TODO: Move to the reader after moving out the config from the tests.
 data HeleniumCapability =
