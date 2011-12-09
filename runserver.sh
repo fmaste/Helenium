@@ -1,4 +1,4 @@
 #!/bin/bash
 
-java -Dwebdriver.chrome.driver=lib/chromedriver-latest -jar lib/selenium-server-latest
+java -Dwebdriver.chrome.driver=lib/chromedriver-current -jar lib/selenium-server-current
 
