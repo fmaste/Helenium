@@ -16,8 +16,8 @@ module Helenium.Base (
 
 -------------------------------------------------------------------------------
 
+import Data.Time
 import Data.Maybe
-import qualified Data.Time as Time
 import Control.Monad.Error
 import Control.Monad.RWS.Strict
 
@@ -60,7 +60,7 @@ data HeleniumReader =
 		screenshotPath :: String
 	}
 
-type HeleniumWriter = [(Time.UTCTime, HeleniumWriterLevel, HeleniumWriterMsg)]
+type HeleniumWriter = [(UTCTime, HeleniumWriterLevel, HeleniumWriterMsg)]
 
 -- TODO: This should be only INFO, DEBUG, WARN and ERROR
 data HeleniumWriterLevel = Info | Debug | DebugRequest | DebugResponse
