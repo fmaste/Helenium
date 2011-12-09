@@ -49,7 +49,6 @@ type HeleniumError = String
 
 data HeleniumReader =
 	HeleniumReader {
-		name :: String,
 		server :: String,
 		browser :: HeleniumBrowser,
 		logTime :: Bool,

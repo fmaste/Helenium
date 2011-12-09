@@ -92,7 +92,6 @@ runTest t = do
 	when (not $ any (isPrefixOf "--server=") args) (error $ "No --server parameter.")
 	when (not $ any (isPrefixOf "--browser=") args) (error $ "No --browser parameter.")
 	let config = H.HeleniumReader {
-		H.name = "Test",
 		H.server = "http://127.0.0.1:9515",
 		H.browser = H.HeleniumBrowser H.Chrome "16" H.Linux,
 		H.logTime = True,
@@ -163,7 +162,6 @@ wrapTest :: H.HeleniumM () -> IO (H.HeleniumM ())
 wrapTest t = do
 	return $ do
 		reader <- ask
-		HL.logMsg H.Info ("Running test: " ++ (H.name reader))
 		connect
 		do {
 			setElementTimeout $ H.timeoutElement reader;
