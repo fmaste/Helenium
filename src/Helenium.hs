@@ -64,7 +64,13 @@ module Helenium (
 -------------------------------------------------------------------------------
 
 import qualified Helenium.Base as H
-import Helenium.Network
+import Helenium.Network (
+	isUriValid, 
+	Request (..), 
+	RequestMethod (Get, Post, Delete), 
+	callSelenium, 
+	Response (..),
+	ResponseHTTPHeaders (..))
 import Helenium.Log
 import Data.Maybe
 import Data.Either
