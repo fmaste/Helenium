@@ -23,6 +23,7 @@ logGenerator logs = map f logs where
 	f (t, m) = (showLogTime t) ++ " - " ++ (showLogMsg m)
 
 showLogTime :: Time.UTCTime -> String
+-- TODO: Sometimes the miliseconds has 3 numbers and sometimes 4.
 showLogTime t = show t
 
 showLogMsg :: H.HeleniumWriterMsg -> String
