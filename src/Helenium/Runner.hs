@@ -54,6 +54,8 @@ disconnect = do
 	HN.callSelenium $ HN.Request True HN.Delete "/"
 	return ()
 
+-------------------------------------------------------------------------------
+
 runTest :: H.HeleniumM () -> IO ()
 runTest t = do
 	args <- getArgs
@@ -92,6 +94,8 @@ updateConfig r c
 	| c == "--debugHttp" = 
 		r {H.debugHttp = True}
 	| otherwise = error $ c ++ " is not a valid parameter."
+
+-------------------------------------------------------------------------------
 
 runTest' :: H.HeleniumReader -> H.HeleniumM () -> IO ()
 runTest' r t = do
