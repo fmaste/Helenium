@@ -5,12 +5,12 @@ module Helenium.Base (
 	HeleniumReader (..),
 	HeleniumWriter (..),
 	HeleniumState (..),
+	HeleniumWriterMsg (..),
 	HeleniumBrowser (..),
 	HeleniumBrowserName (..),
 	HeleniumBrowserVersion,
 	HeleniumBrowserPlatform (..),
 	heleniumBrowserNameKey,
-	HeleniumWriterMsg (..),
 	HeleniumCapability (..),
 	heleniumCapabilityKey
 ) where
