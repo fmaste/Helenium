@@ -64,7 +64,7 @@ data HeleniumReader =
 type HeleniumWriter = [(UTCTime, HeleniumWriterLevel, HeleniumWriterMsg)]
 
 -- TODO: This should be only INFO, DEBUG, WARN and ERROR
-data HeleniumWriterLevel = Info | Debug | DebugRequest | DebugResponse
+data HeleniumWriterLevel = Info | Debug | DebugRequest | DebugResponse | Screenshot
 
 -- TODO: Implement different type of messages.
 -- Simples with a String, with a Request object, with a screenshot, etc.

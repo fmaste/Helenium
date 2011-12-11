@@ -209,24 +209,13 @@ forward = do
 
 -- Take a screenshot of the current page.
 -- Returns the screenshot as a base64 encoded PNG.
-takeScreenshot :: String -> H.HeleniumM ()
-takeScreenshot name = do
+takeScreenshot :: H.HeleniumM ()
+takeScreenshot = do
 	ans <- HN.callSelenium $ HN.Request True HN.Get "/screenshot"
 	(status, value) <- processResponseBody $ HN.responseHTTPBody ans
 	case value of
-		JSON.JSString jsString -> saveScreenshot name (JSON.fromJSString jsString)
+		JSON.JSString jsString -> HL.logMsg H.Screenshot (JSON.fromJSString jsString)
 		_ -> throwError "Error reading screenshot, not a valid JSON response."
-
-saveScreenshot :: String -> String -> H.HeleniumM ()
-saveScreenshot name png = do
-	reader <- ask
-	let path = H.screenshotPath reader
-	err <- liftIO $ catch 
-		(writeFile (path ++ "/" ++ name ++ ".png") png >> return "")
-		(\err -> return $ show err)
-	if null err
-		then return ()
-		else throwError $ "Error saving screenshot: " ++ (show err)
 
 changeFocusToIframeById :: String -> H.HeleniumM ()
 changeFocusToIframeById iframeName = do
