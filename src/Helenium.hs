@@ -81,7 +81,7 @@ import qualified System.Posix.Unistd as Sys
 
 echo :: String -> H.HeleniumM ()
 echo m = do
-	HL.logMsg H.Info m
+	HL.logMsg $ H.Info m
 
 getCurrentTime :: H.HeleniumM String
 getCurrentTime = do
@@ -214,7 +214,7 @@ takeScreenshot = do
 	ans <- HN.callSelenium $ HN.Request True HN.Get "/screenshot"
 	(status, value) <- processResponseBody $ HN.responseHTTPBody ans
 	case value of
-		JSON.JSString jsString -> HL.logMsg H.Screenshot (JSON.fromJSString jsString)
+		JSON.JSString jsString -> HL.logMsg $ H.Screenshot (JSON.fromJSString jsString)
 		_ -> throwError "Error reading screenshot, not a valid JSON response."
 
 changeFocusToIframeById :: String -> H.HeleniumM ()

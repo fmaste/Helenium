@@ -13,20 +13,21 @@ import qualified Data.Time as Time
 
 -------------------------------------------------------------------------------
 
-logMsg :: H.HeleniumWriterLevel -> H.HeleniumWriterMsg -> H.HeleniumM ()
-logMsg level msg = do
+logMsg :: H.HeleniumWriterMsg -> H.HeleniumM ()
+logMsg msg = do
 	t <- liftIO $ Time.getCurrentTime
-	tell [(t, level, msg)]
+	tell [(t, msg)]
 
 logGenerator :: H.HeleniumWriter -> [String]
 logGenerator logs = map f logs where
-	f (t, l, m) = (showLogTime t) ++ " - " ++ (showLogLevel l) ++ " - " ++ m
+	f (t, m) = (showLogTime t) ++ " - " ++ (showLogMsg m)
 
 showLogTime :: Time.UTCTime -> String
 showLogTime t = show t
-	
-showLogLevel H.Info = "INFO"
-showLogLevel H.Debug = "DEBUG" 
-showLogLevel H.DebugRequest = "REQUEST"
-showLogLevel H.DebugResponse = "RESPONSE"
+
+showLogMsg :: H.HeleniumWriterMsg -> String
+showLogMsg (H.Info msg) = "INFO - " ++ msg
+showLogMsg (H.HttpRequest req) = "REQUEST - " ++ req
+showLogMsg (H.HttpResponse res) = "RESPONSE - " ++ res
+showLogMsg (H.Screenshot s) = "SCREENSHOT - ..."
 

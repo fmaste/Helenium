@@ -51,20 +51,22 @@ type ResponseHTTPReason = String
 data ResponseHTTPHeaders = ResponseHTTPHeaders {
 		responseHTTPHeaderLocation :: Maybe String
 	}
-	
+
 type ResponseHTTPBody = String
+
+-------------------------------------------------------------------------------
 
 callSelenium :: Request -> H.HeleniumM Response
 callSelenium req = do
 	reader <- ask	
 	httpReq <- makeRequest req
 	when (H.debugHttp reader) $ 
-		HL.logMsg H.DebugRequest $
-			"\n" ++ (show httpReq) ++ "\n" ++ (HTTP.rqBody httpReq)
+		HL.logMsg $ H.HttpRequest $
+			(show httpReq) ++ "\n" ++ (HTTP.rqBody httpReq)
 	httpRes <- sendRequest httpReq
 	when (H.debugHttp reader) $
-		HL.logMsg H.DebugResponse $
-			"\n" ++ (show httpRes) ++ "\n" ++ (HTTP.rspBody httpRes)
+		HL.logMsg $ H.HttpResponse $
+			(show httpRes) ++ "\n" ++ (HTTP.rspBody httpRes)
 	processResponse httpRes
 
 sendRequest :: HTTP.Request String -> H.HeleniumM (HTTP.Response String)

@@ -10,8 +10,7 @@ module Helenium.Base (
 	HeleniumBrowserVersion,
 	HeleniumBrowserPlatform (..),
 	heleniumBrowserNameKey,
-	HeleniumWriterLevel (..),
-	HeleniumWriterMsg,
+	HeleniumWriterMsg (..),
 	HeleniumCapability (..),
 	heleniumCapabilityKey
 ) where
@@ -61,20 +60,15 @@ data HeleniumReader =
 		screenshotPath :: String
 	}
 
-type HeleniumWriter = [(UTCTime, HeleniumWriterLevel, HeleniumWriterMsg)]
-
--- TODO: This should be only INFO, DEBUG, WARN and ERROR
-data HeleniumWriterLevel = Info | Debug | DebugRequest | DebugResponse | Screenshot
-
--- TODO: Implement different type of messages.
--- Simples with a String, with a Request object, with a screenshot, etc.
-type HeleniumWriterMsg = String
+type HeleniumWriter = [(UTCTime, HeleniumWriterMsg)]
 
 data HeleniumState =
 	HeleniumState {
 		serverCapabilities :: [HeleniumCapability],
 		serverSessionId :: Maybe HeleniumSessionId
 	}
+
+data HeleniumWriterMsg = Info String | HttpRequest String | HttpResponse String | Screenshot String
 
 type HeleniumSessionId = String
 
