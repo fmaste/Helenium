@@ -22,7 +22,7 @@ logGenerator :: H.HeleniumWriter -> String
 logGenerator logs = htmlPrefix ++ (concat $ map f logs) ++ htmlSuffix where
 	f (t, m) = "<tr>" ++ (showLogTime t) ++ (showLogMsg m) ++ "</tr>"
 
-htmlPrefix = "<html><body><table>"
+htmlPrefix = "<html><head><style>td{border: 1px solid #000;}</style></head><body><table>"
 htmlSuffix = "</table></body></html>"
 
 showLogTime :: Time.UTCTime -> String
