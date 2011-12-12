@@ -1,7 +1,7 @@
 module Helenium (
 	HR.runTest,
 	echo,
-	-- TODO: getEpoch as an integer!
+	getEpoch,
 	getCurrentTime,
 	sleep,
 	for,
@@ -71,6 +71,7 @@ import qualified Helenium.Runner as HR
 import Data.Maybe
 import Data.Either
 import qualified Data.Time as Time
+import qualified Data.Time.Clock.POSIX as TimePosix
 import Data.List (find, isPrefixOf, isSuffixOf, isInfixOf)
 import Control.Monad.Error
 import Control.Monad.RWS.Strict
@@ -83,6 +84,12 @@ import qualified System.Posix.Unistd as Sys
 echo :: String -> H.HeleniumM ()
 echo m = do
 	HL.logMsg $ H.Info m
+
+getEpoch :: H.HeleniumM String
+getEpoch = do
+	t <- liftIO TimePosix.getPOSIXTime
+	-- The show returns something like "123456.1234s"
+	return $ takeWhile (\c -> c /= '.') (show t)
 
 getCurrentTime :: H.HeleniumM String
 getCurrentTime = do
@@ -124,6 +131,7 @@ assertGreaterOrEqual a b = assert "greater" (>) a b
 
 substr :: String -> Int -> Int -> H.HeleniumM String
 substr s from to = do
+-- TODO: Check errors and assert when needed!
 	let s' = drop from s
 	let s'' = if to == 0
 			then s'
