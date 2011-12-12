@@ -33,6 +33,6 @@ showLogMsg :: H.HeleniumWriterMsg -> String
 showLogMsg (H.Info msg) = "<td>INFO</td><td>" ++ msg ++ "</td>"
 showLogMsg (H.HttpRequest req) = "<td>REQUEST</td><td>" ++ req ++ "</td>"
 showLogMsg (H.HttpResponse res) = "<td>RESPONSE</td><td>" ++ res ++ "</td>"
-showLogMsg (H.Screenshot s) = "<td>SCREENSHOT</td><td>...</td>"
+showLogMsg (H.Screenshot s) = "<td>SCREENSHOT</td><td><img src=\"data:image/png;base64," ++ s ++ "\" /></td>"
 
 
