@@ -3,9 +3,9 @@ module Helenium (
 	echo,
 	getEpoch,
 	getCurrentTime,
-	sleep,
 	for,
 	times,
+	sleep,
 	assertEqual,
 	assertLess,
 	assertGreater,
@@ -96,17 +96,17 @@ getCurrentTime = do
 	t <- liftIO Time.getCurrentTime
 	return $ show t
 
--- Suspends the current thread for a given number of seconds.
-sleep :: Int -> H.HeleniumM ()
-sleep ms = do
-	liftIO $ Sys.sleep ms
-	return ()
-
 for :: [a] -> (a -> H.HeleniumM b) -> H.HeleniumM ()
 for as f = forM_ as f
 
 times :: Int -> H.HeleniumM () -> H.HeleniumM ()
 times n t = replicateM_ n t
+
+-- Suspends the current thread for a given number of seconds.
+sleep :: Int -> H.HeleniumM ()
+sleep ms = do
+	liftIO $ Sys.sleep ms
+	return ()
 
 assert :: Show x => String -> (x -> x -> Bool) -> x -> x -> H.HeleniumM ()
 assert p f a b =
