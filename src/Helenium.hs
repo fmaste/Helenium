@@ -1,5 +1,5 @@
 module Helenium (
-	HR.runTest,
+	runTest,
 	echo,
 	getEpoch,
 	getCurrentTime,
@@ -77,6 +77,12 @@ import Control.Monad.Error
 import Control.Monad.RWS.Strict
 import qualified Text.JSON as JSON
 import qualified System.Posix.Unistd as Sys
+
+-- Runner
+-------------------------------------------------------------------------------
+
+runTest :: H.HeleniumM () -> IO ()
+runTest = HR.runTest
 
 -- Commands
 -------------------------------------------------------------------------------
