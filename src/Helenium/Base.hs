@@ -1,3 +1,5 @@
+{-# OPTIONS_HADDOCK hide #-}
+
 module Helenium.Base (
 	HeleniumM,
 	runHeleniumM,
