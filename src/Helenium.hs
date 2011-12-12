@@ -41,6 +41,7 @@ module Helenium (
 	assertElementDoesNotExistsByPartialText,
 	assertElementDoesNotExistsByXPath,
 	clickElement,
+	clearElement,
 	getElementText,
 	submitElement,
 	sendKeys,
@@ -367,6 +368,13 @@ assertElementDoesNotExistsByXPath x = do
 clickElement :: String -> H.HeleniumM ()
 clickElement e = do
 	HN.callSelenium $ HN.Request True (HN.Post "") $ "/element/" ++ e ++ "/click"
+	return ()
+
+-- Clear a TEXTAREA or text INPUT element's value.
+clearElement :: String -> H.HeleniumM ()
+clearElement e = do
+	HN.callSelenium $ HN.Request True (HN.Post "") $ "/element/" ++ e ++ "/clear"
+	-- TODO: Check error. See the procotol!
 	return ()
 
 getElementText :: String -> H.HeleniumM String
