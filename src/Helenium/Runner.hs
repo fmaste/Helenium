@@ -129,7 +129,7 @@ showError e = putStrLn $ "An error ocurred: " ++ e
 
 showWriter :: H.HeleniumWriter -> IO ()
 -- TODO: Do something with message type!
-showWriter w = mapM_ putStrLn (HL.logGenerator w)
+showWriter w = putStrLn (HL.logGenerator w)
 
 wrapTest :: H.HeleniumM () -> IO (H.HeleniumM ())
 wrapTest t = do
