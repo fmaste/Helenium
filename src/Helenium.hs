@@ -164,24 +164,30 @@ assertSuffix a b = assert "suffix" isSuffixOf a b
 assertInfix :: String -> String -> H.HeleniumM ()
 assertInfix a b = assert "infix" isInfixOf a b
 
--- Client-server commands
+-- Client-server communication
 -------------------------------------------------------------------------------
 
 type ResponseStatus = Int
 
 type ResponseValue = JSON.JSValue
 
+callSelenium :: HN.Request -> H.HeleniumM (ResponseStatus, ResponseValue)
+callSelenium req = do
+	ans <- HN.callSelenium req
+	processResponseHttp ans
+
 -- If the remote server must return a 4xx response, the response body shall 
 -- have a Content-Type of text/plain and the message body shall be a descriptive 
 -- message of the bad request. For all other cases, if a response includes a 
 -- message body, it must have a Content-Type of application/json;charset=UTF-8 
 -- and will be a JSON object.
-processResponseHttp :: HN.Response -> H.HeleniumM ()
+processResponseHttp :: HN.Response -> H.HeleniumM (ResponseStatus, ResponseValue)
 processResponseHttp res = do
 	case HN.responseHTTPCode res of
-		(2, 0, 0) -> return () -- An Ok response with content.
-		(2, 0, 4) -> return () -- An Ok response with no content.
-		(3, 0, 2) -> return () -- The new session redirect.
+		-- Ok response with content.
+		(2, 0, 0) -> processResponseBody $ HN.responseHTTPBody res
+		-- Ok response with no content.
+		(2, 0, 4) -> return (0, JSON.JSNull)
 		-- There are two levels of error handling specified by the wire
 		-- protocol: invalid requests and failed commands.
 		-- Note this is the only error in the Invalid Request category
@@ -197,7 +203,7 @@ processResponseHttp res = do
 -- All invalid requests should result in the server returning a 4xx HTTP response.
 -- The response Content-Type should be set to text/plain and the message body 
 -- should be a descriptive error message.
-processResponseInvalidRequest :: HN.Response -> H.HeleniumM ()
+processResponseInvalidRequest :: HN.Response -> H.HeleniumM (ResponseStatus, ResponseValue)
 processResponseInvalidRequest res = do
 	-- TODO: Send it to the log!
 	throwError $ HN.responseHTTPBody res 
@@ -207,12 +213,10 @@ processResponseInvalidRequest res = do
 -- server should send a 500 Internal Server Error. This response should have a
 -- Content-Type of application/json;charset=UTF-8 and the response body should
 -- be a well formed JSON response object.
-processResponseFailedCommand :: HN.Response -> H.HeleniumM ()
+processResponseFailedCommand :: HN.Response -> H.HeleniumM (ResponseStatus, ResponseValue)
 processResponseFailedCommand res = do
 	(msg, maybeScreen) <- processResponseFailedCommandBody $ HN.responseHTTPBody res
-	if isJust maybeScreen
-		then HL.logMsg $ H.Screenshot (fromJust maybeScreen)
-		else return ()
+	when (isJust maybeScreen) $ HL.logMsg $ H.Screenshot (fromJust maybeScreen)
 	-- TODO: Send it to the log!
 	throwError msg
 
@@ -226,7 +230,7 @@ processResponseFailedCommandBody body = do
 	let body' = reverse $ dropWhile (== '\0') $ reverse body
 	let jsonResult = processResponseFailedCommandBodyJson body'
 	case jsonResult of
-		JSON.Error msg -> throwError $ "Error parsing JSON response: " ++ msg
+		JSON.Error msg -> throwError $ "Error parsing JSON error response: " ++ msg
 		JSON.Ok ans -> return ans
 
 processResponseFailedCommandBodyJson :: String -> JSON.Result (FailedCommandMessage, FailedCommandScreen)
@@ -264,26 +268,27 @@ processResponseBodyJson body = do
 	value <- JSON.valFromObj "value" json
 	return (status, value)
 
+-- Client-server commands!
+-------------------------------------------------------------------------------
+
 -- Navigate to a new URL.
 goTo :: String -> H.HeleniumM ()
 goTo url = do
 	let body = JSON.toJSObject [("url", JSON.toJSString url)]
-	HN.callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/url"
+	callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/url"
 	return ()
 
 -- Retrieve the URL of the current page.
 getUrl :: H.HeleniumM String
 getUrl = do
-	ans <- HN.callSelenium $ HN.Request True HN.Get "/url"
-	(status, value) <- processResponseBody $ HN.responseHTTPBody ans
+	(status, value) <- callSelenium $ HN.Request True HN.Get "/url"
 	case value of
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
 		_ -> throwError "Error reading url, not a valid JSON response."
 
 getTitle :: H.HeleniumM String
 getTitle = do
-	ans <- HN.callSelenium $ HN.Request True HN.Get "/title"
-	(status, value) <- processResponseBody $ HN.responseHTTPBody ans
+	(status, value) <- callSelenium $ HN.Request True HN.Get "/title"
 	case value of
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
 		_ -> throwError "Error reading title, not a valid JSON response."
@@ -291,27 +296,26 @@ getTitle = do
 -- Refresh the current page.
 refresh :: H.HeleniumM ()
 refresh = do
-	HN.callSelenium $ HN.Request True (HN.Post "") "/refresh"
+	callSelenium $ HN.Request True (HN.Post "") "/refresh"
 	return ()
 
 -- Navigate backwards in the browser history, if possible.
 back :: H.HeleniumM ()
 back = do
-	HN.callSelenium $ HN.Request True (HN.Post "") "/back"
+	callSelenium $ HN.Request True (HN.Post "") "/back"
 	return ()
 
 -- Navigate forwards in the browser history, if possible.
 forward :: H.HeleniumM ()
 forward = do
-	HN.callSelenium $ HN.Request True (HN.Post "") "/forward"
+	callSelenium $ HN.Request True (HN.Post "") "/forward"
 	return ()
 
 -- Take a screenshot of the current page.
 -- Returns the screenshot as a base64 encoded PNG.
 takeScreenshot :: H.HeleniumM ()
 takeScreenshot = do
-	ans <- HN.callSelenium $ HN.Request True HN.Get "/screenshot"
-	(status, value) <- processResponseBody $ HN.responseHTTPBody ans
+	(status, value) <- callSelenium $ HN.Request True HN.Get "/screenshot"
 	case value of
 		JSON.JSString jsString -> HL.logMsg $ H.Screenshot (JSON.fromJSString jsString)
 		_ -> throwError "Error reading screenshot, not a valid JSON response."
@@ -319,64 +323,63 @@ takeScreenshot = do
 changeFocusToIframeById :: String -> H.HeleniumM ()
 changeFocusToIframeById iframeName = do
 	let body = JSON.toJSObject [("id", JSON.toJSString iframeName)]
-	ans <- HN.callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/frame"
+	callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/frame"
 	return ()
 
 changeFocusToIframeByNumber :: Int -> H.HeleniumM ()
 changeFocusToIframeByNumber iframeNumber = do
 	let body = JSON.toJSObject [("id", JSON.showJSON iframeNumber)]
-	ans <- HN.callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/frame"
+	callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/frame"
 	return ()
 
 changeFocusToDefaultIframe :: H.HeleniumM ()
 changeFocusToDefaultIframe = do
 	let body = JSON.toJSObject [("id", JSON.JSNull)]
-	ans <- HN.callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/frame"
+	callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/frame"
 	return ()
 
 -- Get the element on the page that currently has focus.
 getActiveElement :: H.HeleniumM String
 getActiveElement = do
-	ans <- HN.callSelenium $ HN.Request True (HN.Post "") "/element/active"
+	ans <- callSelenium $ HN.Request True (HN.Post "") "/element/active"
 	processElementResponse ans
 
 -- Search for an element on the page, starting from the document root.
 -- Each locator must return the first matching element located in the DOM.
-getResponseElementBy :: String -> String -> H.HeleniumM HN.Response
+getResponseElementBy :: String -> String -> H.HeleniumM (ResponseStatus, ResponseValue)
 getResponseElementBy using value = do
 	let body = JSON.toJSObject [
 		("using", JSON.toJSString using),
 		("value", JSON.toJSString value)]
 	-- Return {"ELEMENT":":wdc:1322198176445"}
-	ans <- HN.callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/element"
+	ans <- callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/element"
 	return ans
 
-getResponseElementById :: String -> H.HeleniumM HN.Response
+getResponseElementById :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
 getResponseElementById id = getResponseElementBy "id" id
 
-getResponseElementByName :: String -> H.HeleniumM HN.Response
+getResponseElementByName :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
 getResponseElementByName name = getResponseElementBy "name" name
 
-getResponseElementByClassName :: String -> H.HeleniumM HN.Response
+getResponseElementByClassName :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
 getResponseElementByClassName className = getResponseElementBy "class name" className
 
-getResponseElementByCssSelector :: String -> H.HeleniumM HN.Response
+getResponseElementByCssSelector :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
 getResponseElementByCssSelector css = getResponseElementBy "css selector" css
 
 -- Returns an anchor element whose visible text matches the search value.
-getResponseElementByText :: String -> H.HeleniumM HN.Response
+getResponseElementByText :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
 getResponseElementByText text = getResponseElementBy "link text" text
 
 -- Returns an anchor element whose visible text partially matches the search value.
-getResponseElementByPartialText :: String -> H.HeleniumM HN.Response
+getResponseElementByPartialText :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
 getResponseElementByPartialText text = getResponseElementBy "partial link text" text
 
-getResponseElementByXPath :: String -> H.HeleniumM HN.Response
+getResponseElementByXPath :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
 getResponseElementByXPath x = getResponseElementBy "xpath" x
 
-processElementResponse :: HN.Response -> H.HeleniumM String
-processElementResponse ans = do
-	(status, value) <- processResponseBody $ HN.responseHTTPBody ans 
+processElementResponse :: (ResponseStatus, ResponseValue) -> H.HeleniumM String
+processElementResponse (status, value) = do
 	case value of
 		(JSON.JSObject obj) -> case JSON.valFromObj "ELEMENT" obj of
 			JSON.Ok (JSON.JSString element) -> return $ JSON.fromJSString element
@@ -420,9 +423,8 @@ getElementByXPath x = do
 	ans <- getResponseElementByXPath x
 	processElementResponse ans
 
-processElementDoesNotExistsResponse :: HN.Response -> H.HeleniumM ()
-processElementDoesNotExistsResponse ans = do
-	(status, value) <- processResponseBody $ HN.responseHTTPBody ans
+processElementDoesNotExistsResponse :: (ResponseStatus, ResponseValue) -> H.HeleniumM ()
+processElementDoesNotExistsResponse (status, value) = do
 	if status == 7 -- TODO: Use status codes!!!
 		then return ()
 		else throwError "Response was not NoSushElement"
@@ -465,20 +467,19 @@ assertElementDoesNotExistsByXPath x = do
 -- Click on an element.
 clickElement :: String -> H.HeleniumM ()
 clickElement e = do
-	HN.callSelenium $ HN.Request True (HN.Post "") $ "/element/" ++ e ++ "/click"
+	callSelenium $ HN.Request True (HN.Post "") $ "/element/" ++ e ++ "/click"
 	return ()
 
 -- Clear a TEXTAREA or text INPUT element's value.
 clearElement :: String -> H.HeleniumM ()
 clearElement e = do
-	HN.callSelenium $ HN.Request True (HN.Post "") $ "/element/" ++ e ++ "/clear"
+	callSelenium $ HN.Request True (HN.Post "") $ "/element/" ++ e ++ "/clear"
 	-- TODO: Check error. See the procotol!
 	return ()
 
 getElementText :: String -> H.HeleniumM String
 getElementText e = do
-	ans <- HN.callSelenium $ HN.Request True HN.Get ("/element/" ++ e ++ "/text")
-	(status, value) <- processResponseBody $ HN.responseHTTPBody ans
+	(status, value) <- callSelenium $ HN.Request True HN.Get ("/element/" ++ e ++ "/text")
 	case value of
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
 		_ -> throwError "Error reading element text, not a valid JSON response."
@@ -487,27 +488,26 @@ getElementText e = do
 -- that is a descendant of a FORM element.
 submitElement :: String -> H.HeleniumM ()
 submitElement e = do
-	HN.callSelenium $ HN.Request True (HN.Post "") $ "/element/" ++ e ++ "/submit"
+	callSelenium $ HN.Request True (HN.Post "") $ "/element/" ++ e ++ "/submit"
 	return ()
 
 sendKeys :: [Char] -> H.HeleniumM ()
 sendKeys ks = do
 	let body = JSON.toJSObject [
 		("value", JSON.JSArray $ map JSON.showJSON ks)]
-	HN.callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/keys"
+	callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/keys"
 	return ()
 
 sendKeysToElement :: String -> [Char] -> H.HeleniumM ()
 sendKeysToElement e ks = do
 	let body = JSON.toJSObject [
                 ("value", JSON.JSArray $ map JSON.showJSON ks)]
-	HN.callSelenium $ HN.Request True (HN.Post $ JSON.encode body) $ "/element/" ++ e ++ "/value"
+	callSelenium $ HN.Request True (HN.Post $ JSON.encode body) $ "/element/" ++ e ++ "/value"
 	return ()
 
 getElementIsEnabled :: String -> H.HeleniumM Bool
 getElementIsEnabled e = do
-	ans <- HN.callSelenium $ HN.Request True HN.Get $ "/element/" ++ e ++ "/enabled"
-	(status, value) <- processResponseBody $ HN.responseHTTPBody ans
+	(status, value) <- callSelenium $ HN.Request True HN.Get $ "/element/" ++ e ++ "/enabled"
 	case value of
 		JSON.JSBool bool -> return bool
 		_ -> throwError "Error reading element enabled property, not a valid JSON response."
@@ -528,8 +528,7 @@ assertElementIsNotEnabled e = do
 
 getElementIsDisplayed :: String -> H.HeleniumM Bool
 getElementIsDisplayed e = do
-	ans <- HN.callSelenium $ HN.Request True HN.Get $ "/element/" ++ e ++ "/displayed"
-	(status, value) <- processResponseBody $ HN.responseHTTPBody ans
+	(status, value) <- callSelenium $ HN.Request True HN.Get $ "/element/" ++ e ++ "/displayed"
 	case value of
 		JSON.JSBool bool -> return bool
 		_ -> throwError "Error reading element displayed property, not a valid JSON response."	
@@ -550,8 +549,7 @@ assertElementIsNotDisplayed e = do
 
 getElementIsSelected :: String -> H.HeleniumM Bool
 getElementIsSelected e = do
-	ans <- HN.callSelenium $ HN.Request True HN.Get $ "/element/" ++ e ++ "/selected"
-	(status, value) <- processResponseBody $ HN.responseHTTPBody ans
+	(status, value) <- callSelenium $ HN.Request True HN.Get $ "/element/" ++ e ++ "/selected"
 	case value of
 		JSON.JSBool bool -> return bool
 		_ -> throwError "Error reading element selected property, not a valid JSON response."
@@ -572,8 +570,7 @@ assertElementIsNotSelected e = do
 
 getCookies :: H.HeleniumM [JSON.JSValue]
 getCookies = do
-	ans <- HN.callSelenium $ HN.Request True HN.Get "/cookie"
-	(status, value) <- processResponseBody $ HN.responseHTTPBody ans
+	(status, value) <- callSelenium $ HN.Request True HN.Get "/cookie"
 	case value of
 		JSON.JSArray cookies -> return cookies
 		_ -> throwError "Error reading cookies, not a valid JSON response."
@@ -613,12 +610,12 @@ getCookieExpiresEpoch name = do
 
 deleteAllCookies :: H.HeleniumM ()
 deleteAllCookies = do
-	HN.callSelenium $ HN.Request True HN.Delete "/cookie"
+	callSelenium $ HN.Request True HN.Delete "/cookie"
 	return ()
 
 deleteCookieByName :: String -> H.HeleniumM ()
 deleteCookieByName name = do
-	HN.callSelenium $ HN.Request True HN.Delete ("/cookie/" ++ name)
+	callSelenium $ HN.Request True HN.Delete ("/cookie/" ++ name)
 	return ()
 
 assertCookieDoesNotExists :: String -> H.HeleniumM ()
@@ -634,20 +631,20 @@ assertCookieDoesNotExists name = do
 setTimeoutAsyncScript :: Int -> H.HeleniumM ()
 setTimeoutAsyncScript ms = do
 	let body = JSON.toJSObject [("ms", JSON.showJSON ms)]
-	HN.callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/timeouts/async_script"
+	callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/timeouts/async_script"
 	return ()
 
 -- TODO:
 -- Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
 execute :: String -> H.HeleniumM ()
 execute s = do
-	HN.callSelenium $ HN.Request True (HN.Post s) "/execute"
+	callSelenium $ HN.Request True (HN.Post s) "/execute"
 	return ()
 
 -- TODO:
 -- Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
 executeAsync :: String -> H.HeleniumM ()
 executeAsync s = do
-	HN.callSelenium $ HN.Request True (HN.Post s) "/execute_async"
+	callSelenium $ HN.Request True (HN.Post s) "/execute_async"
 	return ()
 
