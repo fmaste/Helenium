@@ -171,6 +171,78 @@ type ResponseStatus = Int
 
 type ResponseValue = JSON.JSValue
 
+-- If the remote server must return a 4xx response, the response body shall 
+-- have a Content-Type of text/plain and the message body shall be a descriptive 
+-- message of the bad request. For all other cases, if a response includes a 
+-- message body, it must have a Content-Type of application/json;charset=UTF-8 
+-- and will be a JSON object.
+processResponseHttp :: HN.Response -> H.HeleniumM ()
+processResponseHttp res = do
+	case HN.responseHTTPCode res of
+		(2, 0, 0) -> return () -- An Ok response with content.
+		(2, 0, 4) -> return () -- An Ok response with no content.
+		(3, 0, 2) -> return () -- The new session redirect.
+		-- There are two levels of error handling specified by the wire
+		-- protocol: invalid requests and failed commands.
+		-- Note this is the only error in the Invalid Request category
+		-- that does not return a 4xx status code.
+		(5, 0, 1) -> processResponseFailedCommand res
+		-- Invalid requests.
+		(4, _, _) -> processResponseInvalidRequest res
+		-- Failed commands.
+		(5, _, _) -> processResponseFailedCommand res
+		-- TODO: More descriptive message.
+		(_, _, _) -> throwError $ "Unknown server response."
+
+-- All invalid requests should result in the server returning a 4xx HTTP response.
+-- The response Content-Type should be set to text/plain and the message body 
+-- should be a descriptive error message.
+processResponseInvalidRequest :: HN.Response -> H.HeleniumM ()
+processResponseInvalidRequest res = do
+	-- TODO: Send it to the log!
+	throwError $ HN.responseHTTPBody res 
+
+-- If a request maps to a valid command and contains all of the expected
+-- parameters in the request body, yet fails to execute successfully, then the
+-- server should send a 500 Internal Server Error. This response should have a
+-- Content-Type of application/json;charset=UTF-8 and the response body should
+-- be a well formed JSON response object.
+processResponseFailedCommand :: HN.Response -> H.HeleniumM ()
+processResponseFailedCommand res = do
+	(msg, maybeScreen) <- processResponseFailedCommandBody $ HN.responseHTTPBody res
+	if isJust maybeScreen
+		then HL.logMsg $ H.Screenshot (fromJust maybeScreen)
+		else return ()
+	-- TODO: Send it to the log!
+	throwError msg
+
+type FailedCommandMessage = String
+
+type FailedCommandScreen = Maybe String
+
+processResponseFailedCommandBody :: String -> H.HeleniumM (FailedCommandMessage, FailedCommandScreen)
+processResponseFailedCommandBody body = do
+	-- Remove trailing nuls.
+	let body' = reverse $ dropWhile (== '\0') $ reverse body
+	let jsonResult = processResponseFailedCommandBodyJson body'
+	case jsonResult of
+		JSON.Error msg -> throwError $ "Error parsing JSON response: " ++ msg
+		JSON.Ok ans -> return ans
+
+processResponseFailedCommandBodyJson :: String -> JSON.Result (FailedCommandMessage, FailedCommandScreen)
+processResponseFailedCommandBodyJson body = do
+	-- The response must be a JSON object with a "message" and "screen" property.
+	json <- (JSON.decode body :: (JSON.Result (JSON.JSObject JSON.JSValue)))
+	msgJson <- JSON.valFromObj "message" json
+	msg <- case JSON.readJSON msgJson of
+		JSON.Ok (JSON.JSString msg') -> return $ JSON.fromJSString msg'
+		_ -> JSON.Error "Invalid failed command response, it has no error message."
+	screenJson <- JSON.valFromObj "screen" json
+	maybeScreen <- case JSON.readJSON screenJson of
+		JSON.Ok (JSON.JSString screen') -> return $ Just (JSON.fromJSString screen')
+		_ -> return Nothing
+	return (msg, maybeScreen)
+
 processResponseBody :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
 processResponseBody body = do
 	-- Remove trailing nuls.
