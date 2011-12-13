@@ -39,7 +39,10 @@ showLogType (H.Screenshot s) = "SCREENSHOT"
 
 showLogMsg :: H.HeleniumWriterMsg -> String
 showLogMsg (H.Info msg) = msg
-showLogMsg (H.HttpRequest req) = req
-showLogMsg (H.HttpResponse res) = res
+showLogMsg (H.HttpRequest req) = replace '\n' "</br>" req
+showLogMsg (H.HttpResponse res) = replace '\n' "</br>" res
 showLogMsg (H.Screenshot s) = "<img src=\"data:image/png;base64," ++ s ++ "\" />"
+
+replace :: Eq a => a -> [a] -> [a] -> [a]
+replace c cs s = concatMap (\c' -> if c' == c then cs else [c']) s
 
