@@ -84,12 +84,15 @@ import qualified System.Posix.Unistd as Sys
 runTest :: H.HeleniumM () -> IO ()
 runTest = HR.runTest
 
--- Commands
+-- Log commands
 -------------------------------------------------------------------------------
 
 echo :: String -> H.HeleniumM ()
 echo m = do
 	HL.logMsg $ H.Info m
+
+-- Time commands
+-------------------------------------------------------------------------------
 
 getEpoch :: H.HeleniumM String
 getEpoch = do
@@ -102,6 +105,9 @@ getCurrentTime = do
 	t <- liftIO Time.getCurrentTime
 	return $ show t
 
+-- Flow control commands
+-------------------------------------------------------------------------------
+
 for :: [a] -> (a -> H.HeleniumM b) -> H.HeleniumM ()
 for as f = forM_ as f
 
@@ -113,6 +119,9 @@ sleep :: Int -> H.HeleniumM ()
 sleep ms = do
 	liftIO $ Sys.sleep ms
 	return ()
+
+-- Assert commands
+-------------------------------------------------------------------------------
 
 assert :: Show x => String -> (x -> x -> Bool) -> x -> x -> H.HeleniumM ()
 assert p f a b =
@@ -154,6 +163,9 @@ assertSuffix a b = assert "suffix" isSuffixOf a b
 
 assertInfix :: String -> String -> H.HeleniumM ()
 assertInfix a b = assert "infix" isInfixOf a b
+
+-- Client-server commands
+-------------------------------------------------------------------------------
 
 type ResponseStatus = Int
 
