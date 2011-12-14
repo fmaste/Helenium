@@ -216,7 +216,7 @@ processResponseInvalidRequest res = do
 processResponseFailedCommand :: HN.Response -> H.HeleniumM (ResponseStatus, ResponseValue)
 processResponseFailedCommand res = do
 	(status, value) <- processResponseBody $ HN.responseHTTPBody res
-	let jsonResult = processResponseFailedCommandBodyJson value
+	let jsonResult = processResponseFailedCommandJson value
 	case jsonResult of
 		JSON.Error msg -> throwError $ "Error parsing JSON response: " ++ msg
 		JSON.Ok (msg, maybeScreen) -> do
@@ -228,9 +228,9 @@ type FailedCommandMessage = String
 
 type FailedCommandScreen = Maybe String
 
-processResponseFailedCommandBodyJson :: 
+processResponseFailedCommandJson :: 
 	ResponseValue -> JSON.Result (FailedCommandMessage, FailedCommandScreen)
-processResponseFailedCommandBodyJson json = do
+processResponseFailedCommandJson json = do
 	-- The response must be a JSON object with a "message" and "screen" property.
 	case json of
 		(JSON.JSObject jsonObj) -> do
