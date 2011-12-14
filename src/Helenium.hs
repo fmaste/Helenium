@@ -216,33 +216,28 @@ processResponseInvalidRequest res = do
 processResponseFailedCommand :: HN.Response -> H.HeleniumM (ResponseStatus, ResponseValue)
 processResponseFailedCommand res = do
 	(status, value) <- processResponseBody $ HN.responseHTTPBody res
-	let jsonResult = processResponseFailedCommandJson value
-	case jsonResult of
-		JSON.Error msg -> throwError $ "Error parsing JSON response: " ++ msg
-		JSON.Ok (msg, maybeScreen) -> do
-			when (isJust maybeScreen) $ HL.logMsg $ H.Screenshot (fromJust maybeScreen)
-			-- TODO: Send it to the log!
-			throwError msg
+	(msg, maybeScreen) <- processResponseFailedCommandJson value
+	when (isJust maybeScreen) $ HL.logMsg $ H.Screenshot (fromJust maybeScreen)
+	-- TODO: Send it to the log!
+	throwError msg
 
 type FailedCommandMessage = String
 
 type FailedCommandScreen = Maybe String
 
 processResponseFailedCommandJson :: 
-	ResponseValue -> JSON.Result (FailedCommandMessage, FailedCommandScreen)
-processResponseFailedCommandJson json = do
+	ResponseValue -> H.HeleniumM (FailedCommandMessage, FailedCommandScreen)
+processResponseFailedCommandJson json = case json of
 	-- The response must be a JSON object with a "message" and "screen" property.
-	case json of
-		(JSON.JSObject jsonObj) -> do
-			msgJson <- JSON.valFromObj "message" jsonObj
-			msg <- case JSON.readJSON msgJson of
-				JSON.Ok (JSON.JSString msg') -> return $ JSON.fromJSString msg'
-				_ -> JSON.Error "Invalid failed command response, it has no error message."
-			screenJson <- JSON.valFromObj "screen" jsonObj
-			maybeScreen <- case JSON.readJSON screenJson of
-				JSON.Ok (JSON.JSString screen') -> return $ Just (JSON.fromJSString screen')
-				_ -> return Nothing
-			return (msg, maybeScreen)
+	(JSON.JSObject jsonObj) -> do
+		msg <- case (JSON.valFromObj "message" jsonObj) of
+			JSON.Ok (JSON.JSString msg') -> return $ JSON.fromJSString msg'
+			_ -> throwError "Invalid failed command response, it has no error message."
+		maybeScreen <- case (JSON.valFromObj "screen" jsonObj) of
+			JSON.Ok (JSON.JSString screen') -> return $ Just (JSON.fromJSString screen')
+			_ -> return Nothing
+		return (msg, maybeScreen)
+	_ -> throwError "Invalid failed command response, it is not a JSON object."
 
 processResponseBody :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
 processResponseBody body = do
