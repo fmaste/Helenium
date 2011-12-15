@@ -81,12 +81,14 @@ import qualified System.Posix.Unistd as Sys
 -- Runner
 -------------------------------------------------------------------------------
 
+-- |This function runs the test passed as parameter.
 runTest :: H.HeleniumM () -> IO ()
 runTest = HR.runTest
 
 -- Log commands
 -------------------------------------------------------------------------------
 
+-- |Adds a message to the test output.
 echo :: String -> H.HeleniumM ()
 echo m = do
 	HL.logMsg $ H.Info m
@@ -94,12 +96,14 @@ echo m = do
 -- Time commands
 -------------------------------------------------------------------------------
 
+-- |Gets the current UNIX timestamp.
 getEpoch :: H.HeleniumM String
 getEpoch = do
 	t <- liftIO TimePosix.getPOSIXTime
 	-- The show returns something like "123456.1234s"
 	return $ takeWhile (\c -> c /= '.') (show t)
 
+-- |Gets the current UTC time.
 getCurrentTime :: H.HeleniumM String
 getCurrentTime = do
 	t <- liftIO Time.getCurrentTime
@@ -114,7 +118,7 @@ for as f = forM_ as f
 times :: Int -> H.HeleniumM () -> H.HeleniumM ()
 times n t = replicateM_ n t
 
--- Suspends the current thread for a given number of seconds.
+-- |Suspends the test for a given number of seconds.
 sleep :: Int -> H.HeleniumM ()
 sleep ms = do
 	liftIO $ Sys.sleep ms
