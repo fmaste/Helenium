@@ -263,14 +263,14 @@ processResponseBodyJson body = do
 -- Client-server commands!
 -------------------------------------------------------------------------------
 
--- Navigate to a new URL.
+-- |Navigate to a new URL.
 goTo :: String -> H.HeleniumM ()
 goTo url = do
 	let body = JSON.toJSObject [("url", JSON.toJSString url)]
 	callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/url"
 	return ()
 
--- Retrieve the URL of the current page.
+-- |Retrieve the URL of the current page.
 getUrl :: H.HeleniumM String
 getUrl = do
 	(status, value) <- callSelenium $ HN.Request True HN.Get "/url"
@@ -285,28 +285,28 @@ getTitle = do
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
 		_ -> throwError "Error reading title, not a valid JSON response."
 
--- Refresh the current page.
+-- |Refresh the current page.
 refresh :: H.HeleniumM ()
 refresh = do
 	callSelenium $ HN.Request True (HN.Post "") "/refresh"
 	return ()
 
--- Navigate backwards in the browser history, if possible.
+-- |Navigate backwards in the browser history, if possible.
 back :: H.HeleniumM ()
 back = do
 	callSelenium $ HN.Request True (HN.Post "") "/back"
 	return ()
 
--- Navigate forwards in the browser history, if possible.
+-- |Navigate forwards in the browser history, if possible.
 forward :: H.HeleniumM ()
 forward = do
 	callSelenium $ HN.Request True (HN.Post "") "/forward"
 	return ()
 
--- Take a screenshot of the current page.
--- Returns the screenshot as a base64 encoded PNG.
+-- |Take a screenshot of the current page.
 takeScreenshot :: H.HeleniumM ()
 takeScreenshot = do
+	-- Returns the screenshot as a base64 encoded PNG.
 	(status, value) <- callSelenium $ HN.Request True HN.Get "/screenshot"
 	case value of
 		JSON.JSString jsString -> HL.logMsg $ H.Screenshot (JSON.fromJSString jsString)
@@ -330,7 +330,7 @@ changeFocusToDefaultIframe = do
 	callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/frame"
 	return ()
 
--- Get the element on the page that currently has focus.
+-- |Get the element on the page that currently has focus.
 getActiveElement :: H.HeleniumM String
 getActiveElement = do
 	ans <- callSelenium $ HN.Request True (HN.Post "") "/element/active"
@@ -456,13 +456,13 @@ assertElementDoesNotExistsByXPath x = do
 	ans <- getResponseElementByXPath x
 	processElementDoesNotExistsResponse ans
 
--- Click on an element.
+-- |Click on an element.
 clickElement :: String -> H.HeleniumM ()
 clickElement e = do
 	callSelenium $ HN.Request True (HN.Post "") $ "/element/" ++ e ++ "/click"
 	return ()
 
--- Clear a TEXTAREA or text INPUT element's value.
+-- |Clear a TEXTAREA or text INPUT element's value.
 clearElement :: String -> H.HeleniumM ()
 clearElement e = do
 	callSelenium $ HN.Request True (HN.Post "") $ "/element/" ++ e ++ "/clear"
@@ -476,7 +476,7 @@ getElementText e = do
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
 		_ -> throwError "Error reading element text, not a valid JSON response."
 
--- Submit a FORM element. The submit command may also be applied to any element 
+-- |Submit a FORM element. The submit command may also be applied to any element 
 -- that is a descendant of a FORM element.
 submitElement :: String -> H.HeleniumM ()
 submitElement e = do
