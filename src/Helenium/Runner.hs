@@ -114,7 +114,8 @@ runTest' r t = do
 			H.HandlesAlerts,
 			H.CssSelectorsEnabled
 		],
-		H.serverSessionId = Nothing
+		H.serverSessionId = Nothing,
+		H.currentFrame = H.DefaultFrame
 	}
 	t' <- wrapTest t
 	(eitherAns, s', w) <- H.runHeleniumM t' r' s

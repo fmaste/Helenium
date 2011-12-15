@@ -13,6 +13,7 @@ module Helenium.Base (
 	HeleniumBrowserVersion,
 	HeleniumBrowserPlatform (..),
 	heleniumBrowserNameKey,
+	Frame (..),
 	HeleniumCapability (..),
 	heleniumCapabilityKey
 ) where
@@ -67,7 +68,8 @@ type HeleniumWriter = [(UTCTime, HeleniumWriterMsg)]
 data HeleniumState =
 	HeleniumState {
 		serverCapabilities :: [HeleniumCapability],
-		serverSessionId :: Maybe HeleniumSessionId
+		serverSessionId :: Maybe HeleniumSessionId,
+		currentFrame :: Frame
 	}
 
 data HeleniumWriterMsg = Info String | HttpRequest String | HttpResponse String | Screenshot String
@@ -92,6 +94,8 @@ heleniumBrowserNameKey Firefox = "firefox"
 heleniumBrowserNameKey HtmlUnit = "htmlunit"
 heleniumBrowserNameKey IE = "internet explorer"
 heleniumBrowserNameKey IPhone = "iphone"
+
+data Frame = DefaultFrame | FrameById String | FrameByNumber Int
 
 --- TODO: Move to the reader after moving out the config from the tests.
 data HeleniumCapability =

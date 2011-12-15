@@ -320,18 +320,24 @@ changeFocusToIframeById :: String -> H.HeleniumM ()
 changeFocusToIframeById iframeName = do
 	let body = JSON.toJSObject [("id", JSON.toJSString iframeName)]
 	callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/frame"
+	state <- get
+	put $ state {H.currentFrame = H.FrameById iframeName}
 	return ()
 
 changeFocusToIframeByNumber :: Int -> H.HeleniumM ()
 changeFocusToIframeByNumber iframeNumber = do
 	let body = JSON.toJSObject [("id", JSON.showJSON iframeNumber)]
 	callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/frame"
+	state <- get
+	put $ state {H.currentFrame = H.FrameByNumber iframeNumber}
 	return ()
 
 changeFocusToDefaultIframe :: H.HeleniumM ()
 changeFocusToDefaultIframe = do
 	let body = JSON.toJSObject [("id", JSON.JSNull)]
 	callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/frame"
+	state <- get
+	put $ state {H.currentFrame = H.DefaultFrame}
 	return ()
 
 -- |Get the element on the page that currently has focus.
