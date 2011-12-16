@@ -4,6 +4,7 @@ module Helenium.Base (
 	HeleniumM,
 	runHeleniumM,
 	HeleniumError (..),
+	Status,
 	HeleniumReader (..),
 	HeleniumWriter (..),
 	HeleniumState (..),
@@ -54,7 +55,9 @@ data HeleniumError =
 	Assert String | 
 	Unknown String |
 	InvalidRequest String | 
-	FailedCommand String
+	FailedCommand Status String
+
+type Status = Int
 
 instance Error HeleniumError where
 	noMsg = Unknown "An unknown error ocurred."

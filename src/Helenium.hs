@@ -184,8 +184,6 @@ substr s from to = do
 -- Client-server communication
 -------------------------------------------------------------------------------
 
-type ResponseStatus = Int
-
 type ResponseValue = JSON.JSValue
 
 callSelenium :: HN.Request -> H.HeleniumM ResponseValue
@@ -194,7 +192,7 @@ callSelenium req = do
 	return value
 
 -- Calls selenium but does not process the status code.
-callSeleniumAndReturnStatus :: HN.Request -> H.HeleniumM (ResponseStatus, ResponseValue)
+callSeleniumAndReturnStatus :: HN.Request -> H.HeleniumM (H.Status, ResponseValue)
 callSeleniumAndReturnStatus req = do
 	ans <- HN.callSelenium req
 	processResponseHttp ans
@@ -204,7 +202,7 @@ callSeleniumAndReturnStatus req = do
 -- message of the bad request. For all other cases, if a response includes a 
 -- message body, it must have a Content-Type of application/json;charset=UTF-8 
 -- and will be a JSON object.
-processResponseHttp :: HN.Response -> H.HeleniumM (ResponseStatus, ResponseValue)
+processResponseHttp :: HN.Response -> H.HeleniumM (H.Status, ResponseValue)
 processResponseHttp res = do
 	case HN.responseHTTPCode res of
 		-- Ok response with content.
@@ -226,7 +224,7 @@ processResponseHttp res = do
 -- All invalid requests should result in the server returning a 4xx HTTP response.
 -- The response Content-Type should be set to text/plain and the message body 
 -- should be a descriptive error message.
-processResponseInvalidRequest :: HN.Response -> H.HeleniumM (ResponseStatus, ResponseValue)
+processResponseInvalidRequest :: HN.Response -> H.HeleniumM (H.Status, ResponseValue)
 processResponseInvalidRequest res = do
 	-- TODO: Send it to the log!
 	throwError $ H.InvalidRequest $ HN.responseHTTPBody res 
@@ -236,12 +234,12 @@ processResponseInvalidRequest res = do
 -- server should send a 500 Internal Server Error. This response should have a
 -- Content-Type of application/json;charset=UTF-8 and the response body should
 -- be a well formed JSON response object.
-processResponseFailedCommand :: HN.Response -> H.HeleniumM (ResponseStatus, ResponseValue)
+processResponseFailedCommand :: HN.Response -> H.HeleniumM (H.Status, ResponseValue)
 processResponseFailedCommand res = do
 	(status, value) <- processResponseBody $ HN.responseHTTPBody res
 	(msg, maybeScreen) <- processResponseFailedCommandJson value
 	when (isJust maybeScreen) $ HL.logMsg $ H.ScreenshotMsg (fromJust maybeScreen)
-	throwError $ H.FailedCommand msg
+	throwError $ H.FailedCommand status msg
 
 type FailedCommandMessage = String
 
@@ -261,7 +259,7 @@ processResponseFailedCommandJson json = case json of
 		return (msg, maybeScreen)
 	_ -> throwError $ H.Unknown "Invalid failed command response, it is not a JSON object."
 
-processResponseBody :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
+processResponseBody :: String -> H.HeleniumM (H.Status, ResponseValue)
 processResponseBody body = do
 	-- Remove trailing nuls.
 	let body' = reverse $ dropWhile (== '\0') $ reverse body
@@ -274,7 +272,7 @@ processResponseBody body = do
 			when (status /= 0) $ throwError $ H.Unknown $ "Response has an error status code: " ++ (show status)	
 			return (status, value)
 
-processResponseBodyJson :: String -> JSON.Result (ResponseStatus, ResponseValue)
+processResponseBodyJson :: String -> JSON.Result (H.Status, ResponseValue)
 processResponseBodyJson body = do
 	-- The response must be a JSON object with a "status" and "value" property.
 	json <- (JSON.decode body :: (JSON.Result (JSON.JSObject JSON.JSValue)))
@@ -373,13 +371,13 @@ changeFocusToDefaultIframe = do
 -- Process the response of a search for multiple elements on the page.
 -- Search starts from the document root and element are in the order located in the DOM.
 -- The located elements will be returned as a WebElement JSON objects.
-processMultipleElementsResponse :: (ResponseStatus, ResponseValue) -> H.HeleniumM [String]
+processMultipleElementsResponse :: (H.Status, ResponseValue) -> H.HeleniumM [String]
 processMultipleElementsResponse (status, value) = do
 	case value of
 		(JSON.JSArray js) -> mapM processElementResponse $ map (\j -> (status, j)) js
 		_ -> throwError $ H.Unknown "Error reading multiple elements, not a valid JSON response."
 
-processElementResponse :: (ResponseStatus, ResponseValue) -> H.HeleniumM String
+processElementResponse :: (H.Status, ResponseValue) -> H.HeleniumM String
 processElementResponse (status, value) = do
 	case value of
 		(JSON.JSObject obj) -> case JSON.valFromObj "ELEMENT" obj of
@@ -395,7 +393,7 @@ getActiveElement = do
 
 -- Search for an element on the page, starting from the document root.
 -- Each locator must return the first matching element located in the DOM.
-getResponseElementBy :: String -> String -> H.HeleniumM (ResponseStatus, ResponseValue)
+getResponseElementBy :: String -> String -> H.HeleniumM (H.Status, ResponseValue)
 getResponseElementBy using value = do
 	let body = JSON.toJSObject [
 		("using", JSON.toJSString using),
@@ -404,27 +402,27 @@ getResponseElementBy using value = do
 	ans <- callSeleniumAndReturnStatus $ HN.Request True (HN.Post $ JSON.encode body) "/element"
 	return ans
 
-getResponseElementById :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
+getResponseElementById :: String -> H.HeleniumM (H.Status, ResponseValue)
 getResponseElementById id = getResponseElementBy "id" id
 
-getResponseElementByName :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
+getResponseElementByName :: String -> H.HeleniumM (H.Status, ResponseValue)
 getResponseElementByName name = getResponseElementBy "name" name
 
-getResponseElementByClassName :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
+getResponseElementByClassName :: String -> H.HeleniumM (H.Status, ResponseValue)
 getResponseElementByClassName className = getResponseElementBy "class name" className
 
-getResponseElementByCssSelector :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
+getResponseElementByCssSelector :: String -> H.HeleniumM (H.Status, ResponseValue)
 getResponseElementByCssSelector css = getResponseElementBy "css selector" css
 
 -- Returns an anchor element whose visible text matches the search value.
-getResponseElementByText :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
+getResponseElementByText :: String -> H.HeleniumM (H.Status, ResponseValue)
 getResponseElementByText text = getResponseElementBy "link text" text
 
 -- Returns an anchor element whose visible text partially matches the search value.
-getResponseElementByPartialText :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
+getResponseElementByPartialText :: String -> H.HeleniumM (H.Status, ResponseValue)
 getResponseElementByPartialText text = getResponseElementBy "partial link text" text
 
-getResponseElementByXPath :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
+getResponseElementByXPath :: String -> H.HeleniumM (H.Status, ResponseValue)
 getResponseElementByXPath x = getResponseElementBy "xpath" x
 
 getElementById :: String -> H.HeleniumM String
@@ -464,7 +462,7 @@ getElementByXPath x = do
 	ans <- getResponseElementByXPath x
 	processElementResponse ans
 
-processElementDoesNotExistsResponse :: (ResponseStatus, ResponseValue) -> H.HeleniumM ()
+processElementDoesNotExistsResponse :: (H.Status, ResponseValue) -> H.HeleniumM ()
 processElementDoesNotExistsResponse (status, value) = do
 	if status == 7 -- TODO: Use status codes!!!
 		then return ()
