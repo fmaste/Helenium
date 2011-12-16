@@ -78,7 +78,7 @@ sendRequest req = do
 		-- Send the ioError inside the HTTP.Result type
 		(\ioErr -> return $ Stream.failMisc (show ioErr)) 
 	either whenLeft whenRight result where
-		whenLeft connErr = throwError $ show connErr
+		whenLeft connErr = throwError $ H.Unknown $ show connErr
 		whenRight response = return response
 
 processResponse :: HTTP.Response String -> H.HeleniumM Response
@@ -127,7 +127,7 @@ makeRequestUri rs rp = do
 	let sessionId = H.serverSessionId state
 	uriPath <- if rs == True
 		then if isNothing sessionId
-			then throwError "Making a stateful call without a session."
+			then throwError $ H.Unknown "Making a stateful call without a session."
 			else return ("/session/" ++ (fromJust sessionId) ++ rp)
 		else return rp
 	return $ (H.server reader) ++ uriPath

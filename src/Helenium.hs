@@ -133,7 +133,7 @@ assert :: Show x => String -> (x -> x -> Bool) -> x -> x -> H.HeleniumM ()
 assert p f a b =
 	if f a b
 		then return ()
-		else throwError ("Not " ++ p ++ ": " ++ show a ++ " with " ++ show b)
+		else throwError $ H.Assert ("Not " ++ p ++ ": " ++ show a ++ " with " ++ show b)
 
 assertEqual :: (Eq x, Show x) => x -> x -> H.HeleniumM ()
 assertEqual a b = assert "equal" (==) a b
@@ -180,7 +180,7 @@ type ResponseValue = JSON.JSValue
 callSelenium :: HN.Request -> H.HeleniumM ResponseValue
 callSelenium req = do
 	(status, value) <- callSeleniumAndReturnStatus req
-	when (status /= 0) $ throwError $ "Response has an error status code: " ++ (show status)
+	when (status /= 0) $ throwError $ H.Unknown $ "Response has an error status code: " ++ (show status)
 	return value
 
 -- Calls selenium but does not process the status code.
@@ -211,7 +211,7 @@ processResponseHttp res = do
 		-- Failed commands.
 		(5, _, _) -> processResponseFailedCommand res
 		-- TODO: More descriptive message.
-		(_, _, _) -> throwError $ "Unknown server response."
+		(_, _, _) -> throwError $ H.Unknown "Unknown server response."
 
 -- All invalid requests should result in the server returning a 4xx HTTP response.
 -- The response Content-Type should be set to text/plain and the message body 
@@ -219,7 +219,7 @@ processResponseHttp res = do
 processResponseInvalidRequest :: HN.Response -> H.HeleniumM (ResponseStatus, ResponseValue)
 processResponseInvalidRequest res = do
 	-- TODO: Send it to the log!
-	throwError $ HN.responseHTTPBody res 
+	throwError $ H.InvalidRequest $ HN.responseHTTPBody res 
 
 -- If a request maps to a valid command and contains all of the expected
 -- parameters in the request body, yet fails to execute successfully, then the
@@ -230,9 +230,8 @@ processResponseFailedCommand :: HN.Response -> H.HeleniumM (ResponseStatus, Resp
 processResponseFailedCommand res = do
 	(status, value) <- processResponseBody $ HN.responseHTTPBody res
 	(msg, maybeScreen) <- processResponseFailedCommandJson value
-	when (isJust maybeScreen) $ HL.logMsg $ H.ScreenshotMsg (fromJust maybeScreen)
 	-- TODO: Send it to the log!
-	throwError msg
+	throwError $ H.FailedCommand msg maybeScreen
 
 type FailedCommandMessage = String
 
@@ -245,12 +244,12 @@ processResponseFailedCommandJson json = case json of
 	(JSON.JSObject jsonObj) -> do
 		msg <- case (JSON.valFromObj "message" jsonObj) of
 			JSON.Ok (JSON.JSString msg') -> return $ JSON.fromJSString msg'
-			_ -> throwError "Invalid failed command response, it has no error message."
+			_ -> throwError $ H.Unknown "Invalid failed command response, it has no error message."
 		maybeScreen <- case (JSON.valFromObj "screen" jsonObj) of
 			JSON.Ok (JSON.JSString screen') -> return $ Just (JSON.fromJSString screen')
 			_ -> return Nothing
 		return (msg, maybeScreen)
-	_ -> throwError "Invalid failed command response, it is not a JSON object."
+	_ -> throwError $ H.Unknown "Invalid failed command response, it is not a JSON object."
 
 processResponseBody :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
 processResponseBody body = do
@@ -258,7 +257,7 @@ processResponseBody body = do
 	let body' = reverse $ dropWhile (== '\0') $ reverse body
 	let jsonResult = processResponseBodyJson body'
 	case jsonResult of
-		JSON.Error msg -> throwError $ "Error parsing JSON response: " ++ msg
+		JSON.Error msg -> throwError $ H.Unknown $ "Error parsing JSON response: " ++ msg
 		-- TODO: Check error status codes!
 		JSON.Ok ans -> return ans
 
@@ -292,14 +291,14 @@ getUrl = do
 	value <- callSelenium $ HN.Request True HN.Get "/url"
 	case value of
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
-		_ -> throwError "Error reading url, not a valid JSON response."
+		_ -> throwError $ H.Unknown "Error reading url, not a valid JSON response."
 
 getTitle :: H.HeleniumM String
 getTitle = do
 	value <- callSelenium $ HN.Request True HN.Get "/title"
 	case value of
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
-		_ -> throwError "Error reading title, not a valid JSON response."
+		_ -> throwError $ H.Unknown "Error reading title, not a valid JSON response."
 
 -- |Refresh the current page.
 refresh :: H.HeleniumM ()
@@ -326,7 +325,7 @@ takeScreenshot = do
 	value <- callSelenium $ HN.Request True HN.Get "/screenshot"
 	case value of
 		JSON.JSString jsString -> HL.logMsg $ H.ScreenshotMsg (JSON.fromJSString jsString)
-		_ -> throwError "Error reading screenshot, not a valid JSON response."
+		_ -> throwError $ H.Unknown "Error reading screenshot, not a valid JSON response."
 
 -- Frame commands.
 -------------------------------------------------------------------------------
@@ -365,15 +364,15 @@ processMultipleElementsResponse :: (ResponseStatus, ResponseValue) -> H.Helenium
 processMultipleElementsResponse (status, value) = do
 	case value of
 		(JSON.JSArray js) -> mapM processElementResponse $ map (\j -> (status, j)) js
-		_ -> throwError "Error reading multiple elements, not a valid JSON response."
+		_ -> throwError $ H.Unknown "Error reading multiple elements, not a valid JSON response."
 
 processElementResponse :: (ResponseStatus, ResponseValue) -> H.HeleniumM String
 processElementResponse (status, value) = do
 	case value of
 		(JSON.JSObject obj) -> case JSON.valFromObj "ELEMENT" obj of
 			JSON.Ok (JSON.JSString element) -> return $ JSON.fromJSString element
-			_ -> throwError "Error reading element, not a valid JSON response."
-		_ -> throwError "Error reading element, not a valid JSON response."
+			_ -> throwError $ H.Unknown "Error reading element, not a valid JSON response."
+		_ -> throwError $ H.Unknown "Error reading element, not a valid JSON response."
 
 -- |Get the element on the page that currently has focus.
 getActiveElement :: H.HeleniumM String
@@ -456,7 +455,7 @@ processElementDoesNotExistsResponse :: (ResponseStatus, ResponseValue) -> H.Hele
 processElementDoesNotExistsResponse (status, value) = do
 	if status == 7 -- TODO: Use status codes!!!
 		then return ()
-		else throwError "Response was not NoSushElement"
+		else throwError $ H.Unknown "Response was not NoSushElement"
 
 assertElementDoesNotExistsById :: String -> H.HeleniumM ()
 assertElementDoesNotExistsById id = do
@@ -511,7 +510,7 @@ getElementText e = do
 	value <- callSelenium $ HN.Request True HN.Get ("/element/" ++ e ++ "/text")
 	case value of
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
-		_ -> throwError "Error reading element text, not a valid JSON response."
+		_ -> throwError $ H.Unknown "Error reading element text, not a valid JSON response."
 
 -- |Submit a FORM element. The submit command may also be applied to any element 
 -- that is a descendant of a FORM element.
@@ -539,20 +538,20 @@ getElementIsEnabled e = do
 	value <- callSelenium $ HN.Request True HN.Get $ "/element/" ++ e ++ "/enabled"
 	case value of
 		JSON.JSBool bool -> return bool
-		_ -> throwError "Error reading element enabled property, not a valid JSON response."
+		_ -> throwError $ H.Unknown "Error reading element enabled property, not a valid JSON response."
 
 assertElementIsEnabled :: String -> H.HeleniumM ()
 assertElementIsEnabled e = do
 	enabled <- getElementIsEnabled e
 	if enabled
 		then return ()
-		else throwError "Assert element is enabled failed."
+		else throwError $ H.Assert "Assert element is enabled failed."
 	
 assertElementIsNotEnabled :: String -> H.HeleniumM ()
 assertElementIsNotEnabled e = do
 	enabled <- getElementIsEnabled e
 	if enabled
-		then throwError "Assert element is not enabled failed."
+		then throwError $ H.Assert "Assert element is not enabled failed."
 		else return ()
 
 getElementIsDisplayed :: String -> H.HeleniumM Bool
@@ -560,20 +559,20 @@ getElementIsDisplayed e = do
 	value <- callSelenium $ HN.Request True HN.Get $ "/element/" ++ e ++ "/displayed"
 	case value of
 		JSON.JSBool bool -> return bool
-		_ -> throwError "Error reading element displayed property, not a valid JSON response."	
+		_ -> throwError $ H.Unknown "Error reading element displayed property, not a valid JSON response."	
 
 assertElementIsDisplayed :: String -> H.HeleniumM ()
 assertElementIsDisplayed e = do
 	displayed <- getElementIsDisplayed e
 	if displayed
 		then return ()
-		else throwError "Assert element is displayed failed."
+		else throwError $ H.Assert "Assert element is displayed failed."
 
 assertElementIsNotDisplayed :: String -> H.HeleniumM ()
 assertElementIsNotDisplayed e = do
 	displayed <- getElementIsDisplayed e
 	if displayed
-		then throwError "Assert element is not displayed failed."
+		then throwError $ H.Assert "Assert element is not displayed failed."
 		else return ()
 
 getElementIsSelected :: String -> H.HeleniumM Bool
@@ -581,20 +580,20 @@ getElementIsSelected e = do
 	value <- callSelenium $ HN.Request True HN.Get $ "/element/" ++ e ++ "/selected"
 	case value of
 		JSON.JSBool bool -> return bool
-		_ -> throwError "Error reading element selected property, not a valid JSON response."
+		_ -> throwError $ H.Unknown "Error reading element selected property, not a valid JSON response."
 
 assertElementIsSelected :: String -> H.HeleniumM ()
 assertElementIsSelected e = do
 	selected <- getElementIsSelected e
 	if selected
 		then return ()
-		else throwError "Assert element is selected failed."
+		else throwError $ H.Assert "Assert element is selected failed."
 
 assertElementIsNotSelected :: String -> H.HeleniumM ()
 assertElementIsNotSelected e = do
 	selected <- getElementIsSelected e
 	if selected
-		then throwError "Assert element is not selected failed."
+		then throwError $ H.Assert "Assert element is not selected failed."
 		else return ()
 
 getCookies :: H.HeleniumM [JSON.JSValue]
@@ -602,7 +601,7 @@ getCookies = do
 	value <- callSelenium $ HN.Request True HN.Get "/cookie"
 	case value of
 		JSON.JSArray cookies -> return cookies
-		_ -> throwError "Error reading cookies, not a valid JSON response."
+		_ -> throwError $ H.Unknown "Error reading cookies, not a valid JSON response."
 
 getCookieByName :: String -> H.HeleniumM (Maybe JSON.JSValue)
 getCookieByName name = do
@@ -623,9 +622,9 @@ getCookieValue name = do
 	case cookie of
 		Just (JSON.JSObject obj) -> case JSON.valFromObj "value" obj of
 			JSON.Ok (JSON.JSString value) -> return $ JSON.fromJSString value
-			_ -> throwError $ "Error reading cookie value, not a valid JSON response."
-		Nothing -> throwError $ "Cookie does not exists: " ++ name ++ "."
-		_ -> throwError $ "Error reading cookie value, not a valid JSON response."
+			_ -> throwError $ H.Unknown "Error reading cookie value, not a valid JSON response."
+		Nothing -> throwError $ H.Unknown $ "Cookie does not exists: " ++ name ++ "."
+		_ -> throwError $ H.Unknown "Error reading cookie value, not a valid JSON response."
 
 getCookieExpiresEpoch :: String -> H.HeleniumM Int
 getCookieExpiresEpoch name = do
@@ -633,9 +632,9 @@ getCookieExpiresEpoch name = do
 	case cookie of
 		Just (JSON.JSObject obj) -> case JSON.valFromObj "expiry" obj of
 			JSON.Ok (JSON.JSRational False e) -> return $ fromEnum e
-			_ -> throwError $ "Error reading cookie expires, not a valid JSON response."
-		Nothing -> throwError $ "Cookie does not exists: " ++ name ++ "."
-		_ -> throwError $ "Error reading cookie expires, not a vlaid JSON response."
+			_ -> throwError $ H.Unknown "Error reading cookie expires, not a valid JSON response."
+		Nothing -> throwError $ H.Unknown $ "Cookie does not exists: " ++ name ++ "."
+		_ -> throwError $ H.Unknown "Error reading cookie expires, not a vlaid JSON response."
 
 deleteAllCookies :: H.HeleniumM ()
 deleteAllCookies = do
@@ -652,7 +651,7 @@ assertCookieDoesNotExists name = do
 	cookie <- getCookieByName name
 	case cookie of
 		Nothing -> return ()
-		_ -> throwError $ "Cookie exists: " ++ name ++ "."
+		_ -> throwError $ H.Assert $ "Cookie exists: " ++ name ++ "."
 
 -- Set the amount of time, in milliseconds, that asynchronous scripts executed 
 -- by /session/:sessionId/execute_async are permitted to run before they are 

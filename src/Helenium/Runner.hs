@@ -38,7 +38,7 @@ connect = do
 		Just location -> do
 			let sessId = reverse $ takeWhile (/= '/') $ reverse location
 			put $ state {H.serverSessionId = (Just sessId)}
-		Nothing -> throwError "Response has no Location header with the new session."
+		Nothing -> throwError $ H.Unknown "Response has no Location header with the new session."
 	return () 
 
 -- Set the amount of time the driver should wait when searching for elements.
@@ -128,7 +128,11 @@ showOk :: IO ()
 showOk = putStrLn "Test finished successfully!"
 
 showError :: H.HeleniumError -> IO ()
-showError e = putStrLn $ "An error ocurred: " ++ e
+showError (H.Assert msg) = putStrLn $ "Assertion failed: " ++ msg
+showError (H.Unknown msg) = putStrLn $ "An unexpected error ocurred: " ++ msg
+showError (H.InvalidRequest msg) = putStrLn $ "Invalid request: " ++ msg
+-- TODO: Show the screenshot: (isJust maybeScreen) $ HL.logMsg $ H.ScreenshotMsg (fromJust maybeScreen)
+showError (H.FailedCommand msg maybeScreen) = putStrLn $ "Command failed to execute: " ++ msg 
 
 showWriter :: H.HeleniumWriter -> IO ()
 -- TODO: Do something with message type!

@@ -3,10 +3,11 @@
 module Helenium.Base (
 	HeleniumM,
 	runHeleniumM,
-	HeleniumError,
+	HeleniumError (..),
 	HeleniumReader (..),
 	HeleniumWriter (..),
 	HeleniumState (..),
+	Screenshot,
 	HeleniumWriterMsg (..),
 	HeleniumBrowser (..),
 	HeleniumBrowserName (..),
@@ -49,7 +50,15 @@ Hint:
   runRWST . runErrorT . runHeleniumT :: HeleniumT e r w s m a -> r -> s -> m (Either e a, s, w)
 -}
 
-type HeleniumError = String
+data HeleniumError = 
+	Assert String | 
+	Unknown String |
+	InvalidRequest String | 
+	FailedCommand String (Maybe Screenshot)
+
+instance Error HeleniumError where
+	noMsg = Unknown "An unknown error ocurred."
+	strMsg s = Unknown s
 
 data HeleniumReader =
 	HeleniumReader {
@@ -74,6 +83,7 @@ data HeleniumState =
 
 data HeleniumWriterMsg = Info String | HttpRequest String | HttpResponse String | ScreenshotMsg Screenshot
 
+-- A Base 64 encoded PNG image.
 type Screenshot = String
 
 type HeleniumSessionId = String
