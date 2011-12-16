@@ -10,5 +10,6 @@ test = do
 	searchInput <- getElementById "lst-ib"
 	sendKeysToElement searchInput "google"
 	sleep 5
+	assertElementDoesNotExistsById "UNKNOWN-DOM-NODE"
 	return ()
 
