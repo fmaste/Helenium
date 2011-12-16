@@ -155,6 +155,18 @@ assertLessOrEqual a b = assert "less" (<) a b
 assertGreaterOrEqual :: (Ord x, Show x) => x -> x -> H.HeleniumM ()
 assertGreaterOrEqual a b = assert "greater" (>) a b
 
+assertPrefix :: String -> String -> H.HeleniumM ()
+assertPrefix a b = assert "prefix" isPrefixOf a b
+
+assertSuffix :: String -> String -> H.HeleniumM ()
+assertSuffix a b = assert "suffix" isSuffixOf a b
+
+assertInfix :: String -> String -> H.HeleniumM ()
+assertInfix a b = assert "infix" isInfixOf a b
+
+-- String manipulation
+-------------------------------------------------------------------------------
+
 substr :: String -> Int -> Int -> H.HeleniumM String
 substr s from to = do
 -- TODO: Check errors and assert when needed!
@@ -165,15 +177,6 @@ substr s from to = do
 				then take to s'
 				else take ((length s') + to) s'
 	return s''
-
-assertPrefix :: String -> String -> H.HeleniumM ()
-assertPrefix a b = assert "prefix" isPrefixOf a b
-
-assertSuffix :: String -> String -> H.HeleniumM ()
-assertSuffix a b = assert "suffix" isSuffixOf a b
-
-assertInfix :: String -> String -> H.HeleniumM ()
-assertInfix a b = assert "infix" isInfixOf a b
 
 -- Client-server communication
 -------------------------------------------------------------------------------
