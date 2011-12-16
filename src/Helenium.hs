@@ -230,7 +230,7 @@ processResponseFailedCommand :: HN.Response -> H.HeleniumM (ResponseStatus, Resp
 processResponseFailedCommand res = do
 	(status, value) <- processResponseBody $ HN.responseHTTPBody res
 	(msg, maybeScreen) <- processResponseFailedCommandJson value
-	when (isJust maybeScreen) $ HL.logMsg $ H.Screenshot (fromJust maybeScreen)
+	when (isJust maybeScreen) $ HL.logMsg $ H.ScreenshotMsg (fromJust maybeScreen)
 	-- TODO: Send it to the log!
 	throwError msg
 
@@ -325,7 +325,7 @@ takeScreenshot = do
 	-- Returns the screenshot as a base64 encoded PNG.
 	value <- callSelenium $ HN.Request True HN.Get "/screenshot"
 	case value of
-		JSON.JSString jsString -> HL.logMsg $ H.Screenshot (JSON.fromJSString jsString)
+		JSON.JSString jsString -> HL.logMsg $ H.ScreenshotMsg (JSON.fromJSString jsString)
 		_ -> throwError "Error reading screenshot, not a valid JSON response."
 
 -- Frame commands.

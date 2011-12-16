@@ -72,7 +72,9 @@ data HeleniumState =
 		currentFrame :: Frame
 	}
 
-data HeleniumWriterMsg = Info String | HttpRequest String | HttpResponse String | Screenshot String
+data HeleniumWriterMsg = Info String | HttpRequest String | HttpResponse String | ScreenshotMsg Screenshot
+
+type Screenshot = String
 
 type HeleniumSessionId = String
 
