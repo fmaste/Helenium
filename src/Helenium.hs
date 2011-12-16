@@ -267,6 +267,9 @@ processResponseBodyJson body = do
 -- Client-server commands!
 -------------------------------------------------------------------------------
 
+-- Browser commands.
+-------------------------------------------------------------------------------
+
 -- |Navigate to a new URL.
 goTo :: String -> H.HeleniumM ()
 goTo url = do
@@ -316,6 +319,9 @@ takeScreenshot = do
 		JSON.JSString jsString -> HL.logMsg $ H.Screenshot (JSON.fromJSString jsString)
 		_ -> throwError "Error reading screenshot, not a valid JSON response."
 
+-- Frame commands.
+-------------------------------------------------------------------------------
+
 changeFocusToIframeById :: String -> H.HeleniumM ()
 changeFocusToIframeById iframeName = do
 	let body = JSON.toJSObject [("id", JSON.toJSString iframeName)]
@@ -339,6 +345,9 @@ changeFocusToDefaultIframe = do
 	state <- get
 	put $ state {H.currentFrame = H.DefaultFrame}
 	return ()
+
+-- Element commands.
+-------------------------------------------------------------------------------
 
 -- Process the response of a search for multiple elements on the page.
 -- Search starts from the document root and element are in the order located in the DOM.
