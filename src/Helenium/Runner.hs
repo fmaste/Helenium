@@ -131,7 +131,7 @@ showError :: H.HeleniumError -> IO ()
 showError (H.Assert msg) = putStrLn $ "Assertion failed: " ++ msg
 showError (H.Unknown msg) = putStrLn $ "An unexpected error ocurred: " ++ msg
 showError (H.InvalidRequest msg) = putStrLn $ "Invalid request: " ++ msg
-showError (H.FailedCommand status msg) = putStrLn $ "Command failed to execute: " ++ msg 
+showError (H.FailedCommand status msg _) = putStrLn $ "Command failed to execute: " ++ msg 
 
 showWriter :: H.HeleniumWriter -> IO ()
 -- TODO: Do something with message type!
@@ -145,6 +145,14 @@ wrapTest t = do
 		do {
 			setElementTimeout $ H.timeoutElement reader;
 			t
-		} `catchError` (\e -> do {disconnect; throwError e})
+		} `catchError` (\e -> do {
+			disconnect;
+			do {case e of
+				(H.FailedCommand _ _ (Just screen)) ->
+					HL.logMsg $ H.ScreenshotMsg screen
+				_ -> return ()
+			};
+			throwError e
+		})
 		disconnect
 

@@ -239,8 +239,7 @@ processResponseFailedCommand :: HN.Response -> H.HeleniumM ResponseValue
 processResponseFailedCommand res = do
 	(status, value) <- processResponseBody $ HN.responseHTTPBody res
 	(msg, maybeScreen) <- processResponseFailedCommandJson value
-	when (isJust maybeScreen) $ HL.logMsg $ H.ScreenshotMsg (fromJust maybeScreen)
-	throwError $ H.FailedCommand status msg
+	throwError $ H.FailedCommand status msg maybeScreen
 
 type FailedCommandMessage = String
 
@@ -466,7 +465,7 @@ processElementDoesNotExistsResponse getResponseElement elem =
 		throwError $ H.Assert "Element exists."
 	} `catchError` (\e -> 
 		case e of
-			(H.FailedCommand 7 _) -> return ()
+			(H.FailedCommand 7 _ _) -> return ()
 			_ -> throwError e
 	)
 

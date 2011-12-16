@@ -55,7 +55,7 @@ data HeleniumError =
 	Assert String | 
 	Unknown String |
 	InvalidRequest String | 
-	FailedCommand Status String
+	FailedCommand Status String (Maybe Screenshot)
 
 type Status = Int
 
