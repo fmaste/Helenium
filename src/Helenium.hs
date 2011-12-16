@@ -340,6 +340,14 @@ changeFocusToDefaultIframe = do
 	put $ state {H.currentFrame = H.DefaultFrame}
 	return ()
 
+processElementResponse :: (ResponseStatus, ResponseValue) -> H.HeleniumM String
+processElementResponse (status, value) = do
+	case value of
+		(JSON.JSObject obj) -> case JSON.valFromObj "ELEMENT" obj of
+			JSON.Ok (JSON.JSString element) -> return $ JSON.fromJSString element
+			_ -> throwError "Error reading element, not a valid JSON response."
+		_ -> throwError "Error reading element, not a valid JSON response."
+
 -- |Get the element on the page that currently has focus.
 getActiveElement :: H.HeleniumM String
 getActiveElement = do
@@ -379,14 +387,6 @@ getResponseElementByPartialText text = getResponseElementBy "partial link text" 
 
 getResponseElementByXPath :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
 getResponseElementByXPath x = getResponseElementBy "xpath" x
-
-processElementResponse :: (ResponseStatus, ResponseValue) -> H.HeleniumM String
-processElementResponse (status, value) = do
-	case value of
-		(JSON.JSObject obj) -> case JSON.valFromObj "ELEMENT" obj of
-			JSON.Ok (JSON.JSString element) -> return $ JSON.fromJSString element
-			_ -> throwError "Error reading element, not a valid JSON response."
-		_ -> throwError "Error reading element, not a valid JSON response."
 
 getElementById :: String -> H.HeleniumM String
 getElementById id = do
