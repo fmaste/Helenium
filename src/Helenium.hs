@@ -340,6 +340,15 @@ changeFocusToDefaultIframe = do
 	put $ state {H.currentFrame = H.DefaultFrame}
 	return ()
 
+-- Process the response of a search for multiple elements on the page.
+-- Search starts from the document root and element are in the order located in the DOM.
+-- The located elements will be returned as a WebElement JSON objects.
+processMultipleElementsResponse :: (ResponseStatus, ResponseValue) -> H.HeleniumM [String]
+processMultipleElementsResponse (status, value) = do
+	case value of
+		(JSON.JSArray js) -> mapM processElementResponse $ map (\j -> (status, j)) js
+		_ -> throwError "Error reading multiple elements, not a valid JSON response."
+
 processElementResponse :: (ResponseStatus, ResponseValue) -> H.HeleniumM String
 processElementResponse (status, value) = do
 	case value of
