@@ -81,7 +81,7 @@ import qualified System.Posix.Unistd as Sys
 -- Runner
 -------------------------------------------------------------------------------
 
--- |This function runs the test passed as parameter.
+-- |This function starts running the test passed as parameter.
 runTest :: H.HeleniumM () -> IO ()
 runTest = HR.runTest
 
