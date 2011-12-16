@@ -205,7 +205,7 @@ processResponseHttp res = do
 		-- protocol: invalid requests and failed commands.
 		-- Note this is the only error in the Invalid Request category
 		-- that does not return a 4xx status code.
-		(5, 0, 1) -> processResponseFailedCommand res
+		(5, 0, 1) -> processResponseInvalidRequest res
 		-- Invalid requests.
 		(4, _, _) -> processResponseInvalidRequest res
 		-- Failed commands.
