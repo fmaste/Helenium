@@ -12,5 +12,7 @@ test = do
 	sleep 5
 	takeScreenshot
 	assertElementDoesNotExistsById "UNKNOWN-DOM-NODE"
+	echo "About to finish."
+	refresh
 	return ()
 
