@@ -112,9 +112,11 @@ getCurrentTime = do
 -- Flow control commands
 -------------------------------------------------------------------------------
 
+-- |Execute the given HeleniumM action with each element of the array as a parameter.
 for :: [a] -> (a -> H.HeleniumM b) -> H.HeleniumM ()
 for as f = forM_ as f
 
+-- |Do a HeleniunM action a defined number of times.
 times :: Int -> H.HeleniumM () -> H.HeleniumM ()
 times n t = replicateM_ n t
 
