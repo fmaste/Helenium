@@ -155,12 +155,15 @@ assertLessOrEqual a b = assert "less" (<) a b
 assertGreaterOrEqual :: (Ord x, Show x) => x -> x -> H.HeleniumM ()
 assertGreaterOrEqual a b = assert "greater" (>) a b
 
+-- |Fails if the first string is not equal or prefix.
 assertPrefix :: String -> String -> H.HeleniumM ()
 assertPrefix a b = assert "prefix" isPrefixOf a b
 
+-- |Fails if the first string is not equal or suffix.
 assertSuffix :: String -> String -> H.HeleniumM ()
 assertSuffix a b = assert "suffix" isSuffixOf a b
 
+-- |Fails if the first string is not contained anywhere on the second one.
 assertInfix :: String -> String -> H.HeleniumM ()
 assertInfix a b = assert "infix" isInfixOf a b
 
