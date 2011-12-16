@@ -191,9 +191,6 @@ type ResponseValue = JSON.JSValue
 callSelenium :: HN.Request -> H.HeleniumM ResponseValue
 callSelenium req = do
 	(status, value) <- callSeleniumAndReturnStatus req
-	-- TODO: Is it valid a response with HTTP 200 or 204 and a status that is not 0 ??
-	-- Maybe through a failed command exception instead.
-	when (status /= 0) $ throwError $ H.Unknown $ "Response has an error status code: " ++ (show status)
 	return value
 
 -- Calls selenium but does not process the status code.
@@ -271,8 +268,11 @@ processResponseBody body = do
 	let jsonResult = processResponseBodyJson body'
 	case jsonResult of
 		JSON.Error msg -> throwError $ H.Unknown $ "Error parsing JSON response: " ++ msg
-		-- TODO: Check error status codes!
-		JSON.Ok ans -> return ans
+		JSON.Ok (status, value) -> do
+			-- TODO: Is it valid a response with HTTP 200 or 204 and a status that is not 0 ??
+			-- Maybe through a failed command exception instead.
+			when (status /= 0) $ throwError $ H.Unknown $ "Response has an error status code: " ++ (show status)	
+			return (status, value)
 
 processResponseBodyJson :: String -> JSON.Result (ResponseStatus, ResponseValue)
 processResponseBodyJson body = do
