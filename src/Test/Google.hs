@@ -14,5 +14,6 @@ test = do
 	assertElementDoesNotExistsById "UNKNOWN-DOM-NODE"
 	echo "About to finish."
 	refresh
+	assertElementDoesNotExistsByXPath "/html/body/div"
 	return ()
 
