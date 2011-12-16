@@ -101,7 +101,7 @@ getEpoch :: H.HeleniumM String
 getEpoch = do
 	t <- liftIO TimePosix.getPOSIXTime
 	-- The show returns something like "123456.1234s"
-	return $ takeWhile (\c -> c /= '.') (show t)
+	return $ takeWhile (/= '.') (show t)
 
 -- |Gets the current UTC time.
 getCurrentTime :: H.HeleniumM String
