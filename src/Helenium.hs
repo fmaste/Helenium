@@ -175,8 +175,15 @@ type ResponseStatus = Int
 
 type ResponseValue = JSON.JSValue
 
-callSelenium :: HN.Request -> H.HeleniumM (ResponseStatus, ResponseValue)
+callSelenium :: HN.Request -> H.HeleniumM ResponseValue
 callSelenium req = do
+	(status, value) <- callSeleniumAndReturnStatus req
+	when (status /= 0) $ throwError $ "Response has an error status code: " ++ (show status)
+	return value
+
+-- Calls selenium but does not process the status code.
+callSeleniumAndReturnStatus :: HN.Request -> H.HeleniumM (ResponseStatus, ResponseValue)
+callSeleniumAndReturnStatus req = do
 	ans <- HN.callSelenium req
 	processResponseHttp ans
 
@@ -280,14 +287,14 @@ goTo url = do
 -- |Retrieve the URL of the current page.
 getUrl :: H.HeleniumM String
 getUrl = do
-	(status, value) <- callSelenium $ HN.Request True HN.Get "/url"
+	value <- callSelenium $ HN.Request True HN.Get "/url"
 	case value of
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
 		_ -> throwError "Error reading url, not a valid JSON response."
 
 getTitle :: H.HeleniumM String
 getTitle = do
-	(status, value) <- callSelenium $ HN.Request True HN.Get "/title"
+	value <- callSelenium $ HN.Request True HN.Get "/title"
 	case value of
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
 		_ -> throwError "Error reading title, not a valid JSON response."
@@ -314,7 +321,7 @@ forward = do
 takeScreenshot :: H.HeleniumM ()
 takeScreenshot = do
 	-- Returns the screenshot as a base64 encoded PNG.
-	(status, value) <- callSelenium $ HN.Request True HN.Get "/screenshot"
+	value <- callSelenium $ HN.Request True HN.Get "/screenshot"
 	case value of
 		JSON.JSString jsString -> HL.logMsg $ H.Screenshot (JSON.fromJSString jsString)
 		_ -> throwError "Error reading screenshot, not a valid JSON response."
@@ -369,7 +376,7 @@ processElementResponse (status, value) = do
 -- |Get the element on the page that currently has focus.
 getActiveElement :: H.HeleniumM String
 getActiveElement = do
-	ans <- callSelenium $ HN.Request True (HN.Post "") "/element/active"
+	ans <- callSeleniumAndReturnStatus $ HN.Request True (HN.Post "") "/element/active"
 	processElementResponse ans
 
 -- Search for an element on the page, starting from the document root.
@@ -380,7 +387,7 @@ getResponseElementBy using value = do
 		("using", JSON.toJSString using),
 		("value", JSON.toJSString value)]
 	-- Return {"ELEMENT":":wdc:1322198176445"}
-	ans <- callSelenium $ HN.Request True (HN.Post $ JSON.encode body) "/element"
+	ans <- callSeleniumAndReturnStatus $ HN.Request True (HN.Post $ JSON.encode body) "/element"
 	return ans
 
 getResponseElementById :: String -> H.HeleniumM (ResponseStatus, ResponseValue)
@@ -499,7 +506,7 @@ clearElement e = do
 
 getElementText :: String -> H.HeleniumM String
 getElementText e = do
-	(status, value) <- callSelenium $ HN.Request True HN.Get ("/element/" ++ e ++ "/text")
+	value <- callSelenium $ HN.Request True HN.Get ("/element/" ++ e ++ "/text")
 	case value of
 		JSON.JSString jsString -> return $ JSON.fromJSString jsString
 		_ -> throwError "Error reading element text, not a valid JSON response."
@@ -527,7 +534,7 @@ sendKeysToElement e ks = do
 
 getElementIsEnabled :: String -> H.HeleniumM Bool
 getElementIsEnabled e = do
-	(status, value) <- callSelenium $ HN.Request True HN.Get $ "/element/" ++ e ++ "/enabled"
+	value <- callSelenium $ HN.Request True HN.Get $ "/element/" ++ e ++ "/enabled"
 	case value of
 		JSON.JSBool bool -> return bool
 		_ -> throwError "Error reading element enabled property, not a valid JSON response."
@@ -548,7 +555,7 @@ assertElementIsNotEnabled e = do
 
 getElementIsDisplayed :: String -> H.HeleniumM Bool
 getElementIsDisplayed e = do
-	(status, value) <- callSelenium $ HN.Request True HN.Get $ "/element/" ++ e ++ "/displayed"
+	value <- callSelenium $ HN.Request True HN.Get $ "/element/" ++ e ++ "/displayed"
 	case value of
 		JSON.JSBool bool -> return bool
 		_ -> throwError "Error reading element displayed property, not a valid JSON response."	
@@ -569,7 +576,7 @@ assertElementIsNotDisplayed e = do
 
 getElementIsSelected :: String -> H.HeleniumM Bool
 getElementIsSelected e = do
-	(status, value) <- callSelenium $ HN.Request True HN.Get $ "/element/" ++ e ++ "/selected"
+	value <- callSelenium $ HN.Request True HN.Get $ "/element/" ++ e ++ "/selected"
 	case value of
 		JSON.JSBool bool -> return bool
 		_ -> throwError "Error reading element selected property, not a valid JSON response."
@@ -590,7 +597,7 @@ assertElementIsNotSelected e = do
 
 getCookies :: H.HeleniumM [JSON.JSValue]
 getCookies = do
-	(status, value) <- callSelenium $ HN.Request True HN.Get "/cookie"
+	value <- callSelenium $ HN.Request True HN.Get "/cookie"
 	case value of
 		JSON.JSArray cookies -> return cookies
 		_ -> throwError "Error reading cookies, not a valid JSON response."
