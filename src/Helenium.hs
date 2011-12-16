@@ -460,10 +460,14 @@ getElementByXPath x = do
 
 processElementDoesNotExistsResponse :: (String -> H.HeleniumM ResponseValue) -> String -> H.HeleniumM ()
 processElementDoesNotExistsResponse getResponseElement elem =
-	do {getResponseElement elem; return ()} `catchError` (\e -> case e of
-		(H.FailedCommand 7 _) -> return ()
-		(H.FailedCommand 0 _) -> throwError $ H.Assert "Element exists."
-		_ -> throwError e
+	do {
+		getResponseElement elem;
+		-- If no exception, the element was found!
+		throwError $ H.Assert "Element exists."
+	} `catchError` (\e -> 
+		case e of
+			(H.FailedCommand 7 _) -> return ()
+			_ -> throwError e
 	)
 
 assertElementDoesNotExistsById :: String -> H.HeleniumM ()
