@@ -191,6 +191,7 @@ type ResponseValue = JSON.JSValue
 callSelenium :: HN.Request -> H.HeleniumM ResponseValue
 callSelenium req = do
 	(status, value) <- callSeleniumAndReturnStatus req
+	-- TODO: Is it valid a response with HTTP 200 or 204 and a status that is not 0 ??
 	when (status /= 0) $ throwError $ H.Unknown $ "Response has an error status code: " ++ (show status)
 	return value
 
