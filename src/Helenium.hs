@@ -235,8 +235,8 @@ processResponseFailedCommand :: HN.Response -> H.HeleniumM (ResponseStatus, Resp
 processResponseFailedCommand res = do
 	(status, value) <- processResponseBody $ HN.responseHTTPBody res
 	(msg, maybeScreen) <- processResponseFailedCommandJson value
-	-- TODO: Send it to the log!
-	throwError $ H.FailedCommand msg maybeScreen
+	when (isJust maybeScreen) $ HL.logMsg $ H.ScreenshotMsg (fromJust maybeScreen)
+	throwError $ H.FailedCommand msg
 
 type FailedCommandMessage = String
 

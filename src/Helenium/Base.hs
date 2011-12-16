@@ -54,7 +54,7 @@ data HeleniumError =
 	Assert String | 
 	Unknown String |
 	InvalidRequest String | 
-	FailedCommand String (Maybe Screenshot)
+	FailedCommand String
 
 instance Error HeleniumError where
 	noMsg = Unknown "An unknown error ocurred."
