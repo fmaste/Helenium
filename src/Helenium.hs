@@ -135,18 +135,23 @@ assert p f a b =
 		then return ()
 		else throwError $ H.Assert ("Not " ++ p ++ ": " ++ show a ++ " with " ++ show b)
 
+-- |Fails if the elements are not equal. 
 assertEqual :: (Eq x, Show x) => x -> x -> H.HeleniumM ()
 assertEqual a b = assert "equal" (==) a b
 
+-- |Fails if the first element is greater or equal.
 assertLess :: (Ord x, Show x) => x -> x -> H.HeleniumM ()
 assertLess a b = assert "less" (<) a b
 
+-- |Fails if the first element is less or equal.
 assertGreater :: (Ord x, Show x) => x -> x -> H.HeleniumM ()
 assertGreater a b = assert "greater" (>) a b
 
+-- |Fails if the first element is greater.
 assertLessOrEqual :: (Ord x, Show x) => x -> x -> H.HeleniumM ()
 assertLessOrEqual a b = assert "less" (<) a b
 
+-- |Fails if the first element is less.
 assertGreaterOrEqual :: (Ord x, Show x) => x -> x -> H.HeleniumM ()
 assertGreaterOrEqual a b = assert "greater" (>) a b
 
