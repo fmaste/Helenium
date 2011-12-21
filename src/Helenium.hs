@@ -44,12 +44,12 @@ module Helenium (
 	clearElement,
 	submitElement,
 	getElementText,
-	sendKeys,
-	sendKeysToElement,
 	assertElementIsEnabled,
 	assertElementIsNotEnabled,
 	assertElementIsSelected,
 	assertElementIsNotSelected,
+	sendKeys,
+	sendKeysToElement,
 	getCookieValue,
 	getCookieExpiresEpoch,
 	deleteAllCookies,
@@ -316,14 +316,11 @@ clearElement = HC.clearElement
 submitElement :: String -> H.HeleniumM ()
 submitElement = HC.submitElement
 
+-- Element properties
+-------------------------------------------------------------------------------
+
 getElementText :: String -> H.HeleniumM String
 getElementText = HC.getElementText
-
-sendKeys :: [Char] -> H.HeleniumM ()
-sendKeys = HC.sendKeys
-
-sendKeysToElement :: String -> [Char] -> H.HeleniumM ()
-sendKeysToElement = HC.sendKeysToElement
 
 assertElementIsEnabled :: String -> H.HeleniumM ()
 assertElementIsEnabled e = do
@@ -352,6 +349,17 @@ assertElementIsNotSelected e = do
 	if selected
 		then throwError $ H.Assert "Assert element is not selected failed."
 		else return ()
+
+-- Keyboard
+-------------------------------------------------------------------------------
+sendKeys :: [Char] -> H.HeleniumM ()
+sendKeys = HC.sendKeys
+
+sendKeysToElement :: String -> [Char] -> H.HeleniumM ()
+sendKeysToElement = HC.sendKeysToElement
+
+-- Cookies
+-------------------------------------------------------------------------------
 
 getCookieByName :: String -> H.HeleniumM (Maybe JSON.JSValue)
 getCookieByName name = do
