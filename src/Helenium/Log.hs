@@ -33,12 +33,14 @@ showLogTime t = show t
 
 showLogType :: H.HeleniumWriterMsg -> String
 showLogType (H.Info msg) = "INFO"
+showLogType (H.Warn msg) = "WARN"
 showLogType (H.HttpRequest req) = "REQUEST"
 showLogType (H.HttpResponse res) = "RESPONSE"
 showLogType (H.ScreenshotMsg s) = "SCREENSHOT"
 
 showLogMsg :: H.HeleniumWriterMsg -> String
 showLogMsg (H.Info msg) = msg
+showLogMsg (H.Warn msg) = msg
 showLogMsg (H.HttpRequest req) = replace '\n' "</br>" req
 showLogMsg (H.HttpResponse res) = replace '\n' "</br>" res
 showLogMsg (H.ScreenshotMsg s) = "<img src=\"data:image/png;base64," ++ s ++ "\" />"
