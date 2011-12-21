@@ -48,8 +48,6 @@ module Helenium (
 	sendKeysToElement,
 	assertElementIsEnabled,
 	assertElementIsNotEnabled,
-	assertElementIsDisplayed,
-	assertElementIsNotDisplayed,
 	assertElementIsSelected,
 	assertElementIsNotSelected,
 	getCookieValue,
@@ -225,39 +223,49 @@ changeFocusToDefaultIframe = HC.changeFocusToDefaultIframe
 -- Find element commands.
 -------------------------------------------------------------------------------
 
+processElementExistsResponse :: (a -> H.HeleniumM String) -> a -> H.HeleniumM String
+processElementExistsResponse getElement a = do
+	element <- getElement a
+	isDisplayed <- HC.getElementIsDisplayed element
+	if isDisplayed
+		then return element
+		else throwError $ H.HeleniumFailed "Element exists but is not displayed."
+
 -- |Get the element on the page that currently has focus.
 getActiveElement :: H.HeleniumM String
 getActiveElement = HC.getActiveElement
 
 getElementById :: String -> H.HeleniumM String
-getElementById = HC.getElementById
+getElementById = processElementExistsResponse HC.getElementById
 
 getElementByName :: String -> H.HeleniumM String
-getElementByName = HC.getElementByName
+getElementByName = processElementExistsResponse HC.getElementByName
 
 getElementByClassName :: String -> H.HeleniumM String
-getElementByClassName = HC.getElementByClassName
+getElementByClassName = processElementExistsResponse HC.getElementByClassName
 
 getElementByCssSelector :: String -> H.HeleniumM String
-getElementByCssSelector = HC.getElementByCssSelector
+getElementByCssSelector = processElementExistsResponse HC.getElementByCssSelector
 
 -- |Returns an anchor element whose visible text matches the search value.
 getElementByText :: String -> H.HeleniumM String
-getElementByText = HC.getElementByText
+getElementByText = processElementExistsResponse HC.getElementByText
 
 -- |Returns an anchor element whose visible text partially matches the search value.
 getElementByPartialText :: String -> H.HeleniumM String
-getElementByPartialText = HC.getElementByPartialText
+getElementByPartialText = processElementExistsResponse HC.getElementByPartialText
 
 getElementByXPath :: String -> H.HeleniumM String
-getElementByXPath = HC.getElementByXPath
+getElementByXPath = processElementExistsResponse HC.getElementByXPath
 
 processElementDoesNotExistsResponse :: (a -> H.HeleniumM String) -> a -> H.HeleniumM ()
 processElementDoesNotExistsResponse getResponseElement a =
 	do {
-		getResponseElement a;
-		-- If no exception, the element was found!
-		throwError $ H.Assert "Element exists."
+		element <- getResponseElement a;
+		isDisplayed <- HC.getElementIsDisplayed element;
+		if isDisplayed
+			then throwError $ H.Assert "Element exists.";
+			else HL.logMsg $ H.Warn "Element exists but is not displayed.";
 	} `catchError` (\e -> 
 		case e of
 			(H.FailedCommand 7 _ _) -> return ()
@@ -329,20 +337,6 @@ assertElementIsNotEnabled e = do
 	enabled <- HC.getElementIsEnabled e
 	if enabled
 		then throwError $ H.Assert "Assert element is not enabled failed."
-		else return ()
-
-assertElementIsDisplayed :: String -> H.HeleniumM ()
-assertElementIsDisplayed e = do
-	displayed <- HC.getElementIsDisplayed e
-	if displayed
-		then return ()
-		else throwError $ H.Assert "Assert element is displayed failed."
-
-assertElementIsNotDisplayed :: String -> H.HeleniumM ()
-assertElementIsNotDisplayed e = do
-	displayed <- HC.getElementIsDisplayed e
-	if displayed
-		then throwError $ H.Assert "Assert element is not displayed failed."
 		else return ()
 
 assertElementIsSelected :: String -> H.HeleniumM ()
