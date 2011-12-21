@@ -132,6 +132,7 @@ showError (H.Assert msg) = putStrLn $ "Assertion failed: " ++ msg
 showError (H.Unknown msg) = putStrLn $ "An unexpected error ocurred: " ++ msg
 showError (H.InvalidRequest msg) = putStrLn $ "Invalid request: " ++ msg
 showError (H.FailedCommand status msg _) = putStrLn $ "Command failed to execute: " ++ msg 
+showError (H.HeleniumFailed msg) = putStrLn msg 
 
 showWriter :: H.HeleniumWriter -> IO ()
 -- TODO: Do something with message type!
