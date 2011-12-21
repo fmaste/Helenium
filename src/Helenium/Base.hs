@@ -52,11 +52,12 @@ Hint:
 -}
 
 data HeleniumError = 
-	Assert String | 
-	Unknown String |
-	InvalidRequest String | 
-	FailedCommand Status String (Maybe Screenshot)
-
+	Assert String | -- Assertion failed.
+	Unknown String | -- For other uses.
+	InvalidRequest String | -- Selenium call was invalid.
+	FailedCommand Status String (Maybe Screenshot) | -- Selenium call failed.
+	HeleniumFailed String -- An error at the application level.
+	
 type Status = Int
 
 instance Error HeleniumError where
