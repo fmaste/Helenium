@@ -85,7 +85,12 @@ data HeleniumState =
 		currentFrame :: Frame
 	}
 
-data HeleniumWriterMsg = Info String | HttpRequest String | HttpResponse String | ScreenshotMsg Screenshot
+data HeleniumWriterMsg = 
+	Info String | 
+	Warn String | 
+	HttpRequest String | 
+	HttpResponse String | 
+	ScreenshotMsg Screenshot
 
 -- A Base 64 encoded PNG image.
 type Screenshot = String
