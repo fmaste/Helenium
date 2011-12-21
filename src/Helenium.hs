@@ -220,19 +220,43 @@ changeFocusToIframeByNumber = HC.changeFocusToIframeByNumber
 changeFocusToDefaultIframe :: H.HeleniumM ()
 changeFocusToDefaultIframe = HC.changeFocusToDefaultIframe
 
--- Find element commands.
+-- Element helper functions.
 -------------------------------------------------------------------------------
+
+-- To assert if elements are displayed before using them.
+assertElementIsDisplayed :: String -> H.HeleniumM ()
+assertElementIsDisplayed element = do
+	isDisplayed <- HC.getElementIsDisplayed element
+	if isDisplayed
+		then return ()
+		else throwError $ H.HeleniumFailed "Element exists but is not displayed."
 
 processElementExistsResponse :: (a -> H.HeleniumM String) -> a -> H.HeleniumM String
 processElementExistsResponse getElement a = do
 	element <- getElement a
-	isDisplayed <- HC.getElementIsDisplayed element
-	if isDisplayed
-		then return element
-		else throwError $ H.HeleniumFailed "Element exists but is not displayed."
+	assertElementIsDisplayed element
+	return element
+
+processElementDoesNotExistsResponse :: (a -> H.HeleniumM String) -> a -> H.HeleniumM ()
+processElementDoesNotExistsResponse getResponseElement a =
+	do {
+		element <- getResponseElement a;
+		isDisplayed <- HC.getElementIsDisplayed element;
+		if isDisplayed
+			then throwError $ H.Assert "Element exists.";
+			else HL.logMsg $ H.Warn "Element exists but is not displayed.";
+	} `catchError` (\e ->
+		case e of
+			(H.FailedCommand 7 _ _) -> return ()
+			_ -> throwError e
+	)
+
+-- Find element commands.
+-------------------------------------------------------------------------------
 
 -- |Get the element on the page that currently has focus.
 getActiveElement :: H.HeleniumM String
+-- TODO: An active element can be not displayed?
 getActiveElement = HC.getActiveElement
 
 getElementById :: String -> H.HeleniumM String
@@ -258,72 +282,67 @@ getElementByPartialText = processElementExistsResponse HC.getElementByPartialTex
 getElementByXPath :: String -> H.HeleniumM String
 getElementByXPath = processElementExistsResponse HC.getElementByXPath
 
-processElementDoesNotExistsResponse :: (a -> H.HeleniumM String) -> a -> H.HeleniumM ()
-processElementDoesNotExistsResponse getResponseElement a =
-	do {
-		element <- getResponseElement a;
-		isDisplayed <- HC.getElementIsDisplayed element;
-		if isDisplayed
-			then throwError $ H.Assert "Element exists.";
-			else HL.logMsg $ H.Warn "Element exists but is not displayed.";
-	} `catchError` (\e -> 
-		case e of
-			(H.FailedCommand 7 _ _) -> return ()
-			_ -> throwError e
-	)
-
 assertElementDoesNotExistsById :: String -> H.HeleniumM ()
 assertElementDoesNotExistsById id = do
-	processElementDoesNotExistsResponse getElementById id
+	processElementDoesNotExistsResponse HC.getElementById id
 
 assertElementDoesNotExistsByName :: String -> H.HeleniumM ()
 assertElementDoesNotExistsByName name = do
-	processElementDoesNotExistsResponse getElementByName name
+	processElementDoesNotExistsResponse HC.getElementByName name
 
 assertElementDoesNotExistsByClassName :: String -> H.HeleniumM ()
 assertElementDoesNotExistsByClassName className = do
-	processElementDoesNotExistsResponse getElementByClassName className
+	processElementDoesNotExistsResponse HC.getElementByClassName className
 
 assertElementDoesNotExistsByCssSelector :: String -> H.HeleniumM ()
 assertElementDoesNotExistsByCssSelector css = do
-	processElementDoesNotExistsResponse getElementByCssSelector css
+	processElementDoesNotExistsResponse HC.getElementByCssSelector css
 
 assertElementDoesNotExistsByText :: String -> H.HeleniumM ()
 assertElementDoesNotExistsByText text = do
-	processElementDoesNotExistsResponse getElementByText text
+	processElementDoesNotExistsResponse HC.getElementByText text
 
 assertElementDoesNotExistsByPartialText :: String -> H.HeleniumM ()
 assertElementDoesNotExistsByPartialText text = do
-	processElementDoesNotExistsResponse getElementByPartialText text
+	processElementDoesNotExistsResponse HC.getElementByPartialText text
 
 assertElementDoesNotExistsByXPath :: String -> H.HeleniumM ()
 assertElementDoesNotExistsByXPath x = do
-	processElementDoesNotExistsResponse getElementByXPath x
+	processElementDoesNotExistsResponse HC.getElementByXPath x
 
 -- Manipulate element commands.
 -------------------------------------------------------------------------------
 
 -- |Click on an element.
 clickElement :: String -> H.HeleniumM ()
-clickElement = HC.clickElement
+clickElement element = do
+	assertElementIsDisplayed element
+	HC.clickElement element
 
 -- |Clear a TEXTAREA or text INPUT element's value.
 clearElement :: String -> H.HeleniumM ()
-clearElement = HC.clearElement
+clearElement element = do
+	assertElementIsDisplayed element
+	HC.clearElement element
 
 -- |Submit a FORM element. The submit command may also be applied to any element 
 -- that is a descendant of a FORM element.
 submitElement :: String -> H.HeleniumM ()
-submitElement = HC.submitElement
+submitElement element = do
+	assertElementIsDisplayed element
+	HC.submitElement element
 
 -- Element properties
 -------------------------------------------------------------------------------
 
 getElementText :: String -> H.HeleniumM String
-getElementText = HC.getElementText
+getElementText e = do
+	assertElementIsDisplayed e
+	HC.getElementText e
 
 assertElementIsEnabled :: String -> H.HeleniumM ()
 assertElementIsEnabled e = do
+	assertElementIsDisplayed e
 	enabled <- HC.getElementIsEnabled e
 	if enabled
 		then return ()
@@ -331,6 +350,7 @@ assertElementIsEnabled e = do
 	
 assertElementIsNotEnabled :: String -> H.HeleniumM ()
 assertElementIsNotEnabled e = do
+	assertElementIsDisplayed e
 	enabled <- HC.getElementIsEnabled e
 	if enabled
 		then throwError $ H.Assert "Assert element is not enabled failed."
@@ -338,6 +358,7 @@ assertElementIsNotEnabled e = do
 
 assertElementIsSelected :: String -> H.HeleniumM ()
 assertElementIsSelected e = do
+	assertElementIsDisplayed e
 	selected <- HC.getElementIsSelected e
 	if selected
 		then return ()
@@ -345,6 +366,7 @@ assertElementIsSelected e = do
 
 assertElementIsNotSelected :: String -> H.HeleniumM ()
 assertElementIsNotSelected e = do
+	assertElementIsDisplayed e
 	selected <- HC.getElementIsSelected e
 	if selected
 		then throwError $ H.Assert "Assert element is not selected failed."
@@ -356,7 +378,9 @@ sendKeys :: [Char] -> H.HeleniumM ()
 sendKeys = HC.sendKeys
 
 sendKeysToElement :: String -> [Char] -> H.HeleniumM ()
-sendKeysToElement = HC.sendKeysToElement
+sendKeysToElement element chars = do
+	assertElementIsDisplayed element
+	HC.sendKeysToElement element chars
 
 -- Cookies
 -------------------------------------------------------------------------------
