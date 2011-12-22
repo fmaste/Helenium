@@ -1,6 +1,7 @@
-module Test.Google where
+module Google where
 
 import Helenium
+import qualified Iframe as I
 
 main = runTest test
 

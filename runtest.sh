@@ -1,10 +1,10 @@
 #!/bin/bash
 
-cd src
-
-test="$1"
+testsDir="$1"
+test="$2"
 
 shift
+shift
 
-runghc Test.$test $@
+runghc -isrc:$testsDir $test $@
 
