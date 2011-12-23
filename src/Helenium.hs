@@ -111,7 +111,7 @@ getCurrentTime = do
 for :: [a] -> (a -> H.HeleniumM b) -> H.HeleniumM ()
 for as f = forM_ as f
 
--- |Do a HeleniunM action a defined number of times.
+-- |Do a HeleniunM action a predefined number of times.
 times :: Int -> H.HeleniumM () -> H.HeleniumM ()
 times n t = replicateM_ n t
 
@@ -165,6 +165,11 @@ assertInfix a b = assert "infix" isInfixOf a b
 -- String manipulation
 -------------------------------------------------------------------------------
 
+-- |Create a substring.
+-- First param is the string to process.
+-- The first number it from where to start (first letter is 0).
+-- The second number if positive is how many chars to take.
+-- If negative is how many chars to drop from the end of the string.
 substr :: String -> Int -> Int -> H.HeleniumM String
 substr s from to = do
 -- TODO: Check errors and assert when needed!
@@ -187,6 +192,7 @@ goTo = HC.goTo
 getUrl :: H.HeleniumM String
 getUrl = HC.getUrl
 
+-- |Get the browser title.
 getTitle :: H.HeleniumM String
 getTitle = HC.getTitle
 
@@ -374,6 +380,7 @@ assertElementIsNotSelected e = do
 
 -- Keyboard
 -------------------------------------------------------------------------------
+
 sendKeys :: [Char] -> H.HeleniumM ()
 sendKeys = HC.sendKeys
 
