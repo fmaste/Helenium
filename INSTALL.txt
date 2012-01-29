@@ -1,6 +1,8 @@
 # Use the newest Ubuntu version, 11.10
 
 sudo apt-get install haskell-platform
+
+with the user that will run the tests:
 cabal update
 cabal install json
 
