@@ -20,6 +20,8 @@ import qualified Network.URI as URI
 import qualified Network.HTTP as HTTP
 import qualified Network.HTTP.Stream as Stream
 import Data.Maybe
+import Prelude hiding (catch)
+import Control.Exception (catch, IOException)
 import Control.Monad.Error
 import Control.Monad.RWS.Strict
 
@@ -76,7 +78,7 @@ sendRequest req = do
 	result <- liftIO $ catch 
 		(HTTP.simpleHTTP req)
 		-- Send the ioError inside the HTTP.Result type
-		(\ioErr -> return $ Stream.failMisc (show ioErr)) 
+		(\ioErr -> return $ Stream.failMisc (show (ioErr :: IOException))) 
 	either whenLeft whenRight result where
 		whenLeft connErr = throwError $ H.Unknown $ show connErr
 		whenRight response = return response
