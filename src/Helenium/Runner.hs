@@ -11,7 +11,7 @@ import qualified Helenium.Log as HL
 import qualified Helenium.Network as HN
 import Control.Monad.Error
 import Control.Monad.RWS.Strict
-import System (getArgs)
+import System.Environment (getArgs)
 import Data.List (find, isPrefixOf, isSuffixOf, isInfixOf)
 import qualified Text.JSON as JSON
 
