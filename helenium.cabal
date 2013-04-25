@@ -1,0 +1,63 @@
+Name: Helenium
+Version: 1.0.0
+Category: Testing, Web
+Synopsis: Selenium EDSL
+Copyright: (c) 2012-2013 Federico Mastellone
+License: AllRightsReserved
+License-file: LICENSE
+Author: Federico Mastellone
+Maintainer: fmaste@gmail.com
+Homepage: https://github.com/fmaste/Helenium
+Description: 
+   An EDSL for Selenium's WebDriver Protocol
+Bug-reports: https://github.com/fmaste/Helenium/issues
+Tested-with: GHC>=7
+Cabal-version: >=1.14
+Build-type: Simple
+-- A list of files to be installed for run-time use by the package.
+-- Data-files: samples/free.dbf
+-- The directory where Cabal looks for data files to install, relative to the source directory.
+-- Data-dir: data
+-- A list of additional files to be included in source distributions built with setup sdist.
+-- Extra-source-files: filename list
+-- A list of additional files or directories to be removed by setup clean.
+-- Extra-tmp-files: filename list
+
+source-repository head
+    type:     git
+    location: https://github.com/fmaste/Helenium.git
+
+Library
+    -- The library section should contain the following fields:
+    exposed-modules:
+        Helenium
+    exposed: True
+    -- As well as build information fields 
+    hs-source-dirs: src
+    default-language: Haskell2010
+    build-depends: 
+        base >= 4.5 && < 5,
+        time >= 1.2,
+        transformers >= 3.0,
+    other-modules: 
+    ghc-options: -O2 -Wall
+    ghc-prof-options:
+    ghc-shared-options:
+
+Executable helenium
+    -- The executable may be described using the following fields
+    main-is: DBF2CSV.hs
+    -- As well as build information fields 
+    hs-source-dirs: src
+    default-language: Haskell2010
+    build-depends: 
+        base >= 4.5 && < 5,
+        bytestring >= 0.9,
+        text >= 0.11,
+        time >= 1.4,
+        binary >= 0.6.4
+    other-modules: 
+    ghc-options: -O2 -Wall
+    ghc-prof-options:
+    ghc-shared-options:
+
