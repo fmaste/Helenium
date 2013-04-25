@@ -92,10 +92,10 @@ echo m = do
 -------------------------------------------------------------------------------
 
 -- |Gets the current UNIX timestamp.
+-- The show returns something like "123456.1234s"
 getEpoch :: H.HeleniumM String
 getEpoch = do
 	t <- liftIO TimePosix.getPOSIXTime
-	-- The show returns something like "123456.1234s"
 	return $ takeWhile (/= '.') (show t)
 
 -- |Gets the current UTC time.
