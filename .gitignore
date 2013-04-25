@@ -2,3 +2,5 @@ doc/*
 chromedriver.log
 .DS_Store
 *.swp
+*~
+
