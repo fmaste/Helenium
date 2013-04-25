@@ -73,7 +73,7 @@ import Data.List (find, isPrefixOf, isSuffixOf, isInfixOf)
 import Control.Monad.Error
 import Control.Monad.RWS.Strict
 import qualified Text.JSON as JSON
-import qualified System.Posix.Unistd as Sys
+import Control.Concurrent (threadDelay)
 
 -- Runner
 -------------------------------------------------------------------------------
@@ -119,8 +119,8 @@ times n t = replicateM_ n t
 
 -- |Suspends the test for a given number of seconds.
 sleep :: Int -> H.HeleniumM ()
-sleep ms = do
-	liftIO $ Sys.sleep ms
+sleep s = do
+	liftIO $ threadDelay (1000000 * s)
 	return ()
 
 -- Assert commands
