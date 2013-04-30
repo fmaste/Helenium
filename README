@@ -1,0 +1,17 @@
+An EDSL for Selenium in Haskell!
+
+Tired of having to test before and after every release at work, I build my own domain specific language embedded in Haskell. 
+Here's how it looks like, an example that searches "google" in Google an does some extra stuff
+
+    goTo "http://www.google.com/ncr"
+    searchInput <- getElementById "lst-ib"
+    sendKeysToElement searchInput "google"
+    sleep 5
+    takeScreenshot
+    assertElementDoesNotExistsById "UNKNOWN-DOM-NODE"
+    echo "About to finish."
+    refresh
+    assertElementDoesNotExistsByXPath "/html/body/div"
+    return ()
+
+I also build a web based console for the team to create, edit and run the tests with just a a web browser while providing a nice output of the whole run (screeshots, debug, assertions, warnings, etc).
